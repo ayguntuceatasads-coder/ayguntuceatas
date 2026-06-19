@@ -1,55 +1,31 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ShieldCheck, HeartPulse } from "lucide-react";
+import { ArrowRight, CheckCircle2, HeartPulse } from "lucide-react";
+import HeroSlider from "@/components/ui/HeroSlider"; // Yeni bileşen
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  // 1. Ayarları çek (Hero için)
-  const { data: settings } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+  // 1. Dinamik Slaytları Çek
+  const { data: slides } = await supabase
+    .from('hero_slides')
+    .select('*')
+    .order('order_index', { ascending: true });
 
   // 2. Son eklenen 3 hizmeti çek
-  const { data: services } = await supabase.from('services').select('*').order('created_at', { ascending: false }).limit(3);
+  const { data: services } = await supabase
+    .from('services')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(3);
 
   return (
     <div className="flex flex-col">
       
-      {/* --- SECTION 1: DİNAMİK HERO (ADMİNDEN GÜNCELLENİR) --- */}
-      <section className="relative w-full h-[85vh] min-h-[600px] flex items-center overflow-hidden bg-[#082b34]">
-        {/* Arka Plan Resmi */}
-        <div className="absolute inset-0">
-          <img 
-            src={settings?.hero_image_url || "https://images.unsplash.com/photo-1527689368864-3a821dbccc48?q=80&w=2070"} 
-            className="w-full h-full object-cover opacity-60 scale-105"
-            alt="Klinik Psikolog"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#082b34] via-[#082b34]/70 to-transparent"></div>
-        </div>
+      {/* --- SECTION 1: DİNAMİK HERO SLIDER --- */}
+      <HeroSlider slides={slides || []} />
 
-        <div className="container relative mx-auto px-4 md:px-8 z-10 max-w-7xl">
-          <div className="max-w-2xl animate-in fade-in slide-in-from-left-8 duration-1000">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-[#00878a]/20 border border-[#00878a]/30 text-[#6ec9c9] text-sm font-bold tracking-widest mb-6">
-              ANTALYA PSİKOLOJİK DANIŞMANLIK
-            </span>
-            <h1 className="text-4xl md:text-7xl font-bold text-white leading-[1.1] mb-6">
-              {settings?.hero_title || 'Ruh Sağlığınızda Güvenilir Rehberiniz'}
-            </h1>
-            <p className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
-              {settings?.hero_subtitle || 'Antalya’da uzman kadromuzla, bilimsel ve etik ilkeler ışığında yanınızdayız.'}
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/randevu" className="bg-[#00878a] hover:bg-[#0f4c5c] text-white px-8 py-4 rounded-lg font-bold transition-all shadow-xl shadow-[#00878a]/20 flex items-center gap-2">
-                Hemen Randevu Al <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link href="/hizmetlerimiz" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-lg font-bold transition-all backdrop-blur-md">
-                Hizmetlerimizi İncele
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- SECTION 2: HİZMETLER ÖNİZLEME --- */}
+      {/* --- SECTION 2: HİZMETLER ÖNİZLEME (Mevcut Kodun) --- */}
       <section className="py-24 bg-slate-50">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
@@ -79,7 +55,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* --- SECTION 3: NEDEN BİZ? --- */}
+      {/* --- SECTION 3: NEDEN BİZ? (Mevcut Kodun) --- */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -118,7 +94,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

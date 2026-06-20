@@ -20,6 +20,7 @@ export default function AdminSidebar() {
     hizmetler: pathname.includes('/hizmetler'),
     yazilar: pathname.includes('/icerikler'),
     mesajlar: pathname.includes('/mesajlar'),
+    formlar: pathname.includes('/danisan-formlari'),
     faq: pathname.includes('/faq'),
     olcekler: pathname.includes('/olcekler')
   });
@@ -91,6 +92,27 @@ export default function AdminSidebar() {
           )}
         </div>
 
+        {/* Akordiyon: Formlar */}
+        <div>
+          <button onClick={() => toggleMenu('formlar')} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isChildActive('/admin/danisan-formlari') ? 'text-white' : 'hover:bg-white/5 hover:text-white'}`}>
+            <div className="flex items-center gap-3"><ClipboardList className="w-5 h-5" /> Formlar</div>
+            {openMenus.formlar ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+          {openMenus.formlar && (
+            <div className="pl-11 pr-2 py-2 space-y-1 text-[13px]">
+              <Link href="/admin/danisan-formlari" className={`block px-3 py-2 rounded-md transition-colors ${isActive('/admin/danisan-formlari') ? 'text-[#6ec9c9] font-semibold' : 'hover:text-white hover:bg-white/5'}`}>Tüm Formlar</Link>
+              <div className="border-t border-slate-700 my-1"></div>
+              <Link href="/admin/danisan-formlari?type=yetiskin_on_gorusme" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Yetişkin Ön Görüşme</Link>
+              <Link href="/admin/danisan-formlari?type=cocuk_ergen_on_gorusme" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Çocuk/Ergen Ön Görüşme</Link>
+              <Link href="/admin/danisan-formlari?type=dusunce_kayit" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Düşünce Kayıt Formu</Link>
+              <Link href="/admin/danisan-formlari?type=kanitlari_tarama" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Kanıtları Tarama</Link>
+              <Link href="/admin/danisan-formlari?type=basa_cikma_karti" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Başa Çıkma Kartı</Link>
+              <Link href="/admin/danisan-formlari?type=trafik_isiklari" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Trafik Işıkları</Link>
+              <Link href="/admin/danisan-formlari?type=haftalik_planlama" className="block px-3 py-2 rounded-md hover:text-white hover:bg-white/5 transition-colors">Haftalık Planlama</Link>
+            </div>
+          )}
+        </div>
+
         {/* Akordiyon: Ölçekler */}
         <div>
           <button onClick={() => toggleMenu('olcekler')} className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isChildActive('/admin/olcekler') ? 'text-white' : 'hover:bg-white/5 hover:text-white'}`}>
@@ -144,9 +166,8 @@ export default function AdminSidebar() {
         </Link>
       </nav>
 
-      {/* Alt Sabit Butonlar (Dış Link & Çıkış Yap) */}
+      {/* Alt Sabit Butonlar */}
       <div className="p-4 border-t border-slate-800 bg-[#061d24] space-y-1">
-        {/* Yeni Sekmede Siteyi Açan Buton */}
         <a 
           href="/" 
           target="_blank" 
@@ -159,7 +180,6 @@ export default function AdminSidebar() {
           <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
         </a>
 
-        {/* Çıkış Yapma Butonu */}
         <button 
           onClick={handleSignOut}
           className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"

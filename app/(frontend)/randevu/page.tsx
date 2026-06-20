@@ -13,7 +13,6 @@ export default function AppointmentPage() {
     service: "",
     sessionType: "",
     name: "",
-    age: "",
     phone: "",
     email: "",
     note: ""
@@ -36,7 +35,6 @@ export default function AppointmentPage() {
     const { error } = await supabase.from("messages").insert({
       type: "randevu",
       name: formData.name,
-      age: formData.age,
       email: formData.email,
       phone: formData.phone,
       service: formData.service,
@@ -130,15 +128,9 @@ export default function AppointmentPage() {
                 <h2 className="text-xl font-bold text-[#082b34] mb-2">3. İletişim Bilgileriniz</h2>
                 <p className="text-sm text-slate-500 mb-6">Talebinizle ilgili dönüş yapabilmemiz için bilgilerinizi eksiksiz doldurun.</p>
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-[#082b34] mb-1.5">Adınız Soyadınız *</label>
-                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full px-4 py-3 rounded-md border border-slate-300 focus:border-[#6ec9c9] focus:ring-2 focus:ring-[#6ec9c9]/20 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-[#082b34] mb-1.5">Yaş *</label>
-                      <input required value={formData.age} onChange={(e) => setFormData({...formData, age: e.target.value})} type="number" className="w-full px-4 py-3 rounded-md border border-slate-300 focus:border-[#6ec9c9] focus:ring-2 focus:ring-[#6ec9c9]/20 outline-none" />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#082b34] mb-1.5">Adınız Soyadınız *</label>
+                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full px-4 py-3 rounded-md border border-slate-300 focus:border-[#6ec9c9] focus:ring-2 focus:ring-[#6ec9c9]/20 outline-none" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>

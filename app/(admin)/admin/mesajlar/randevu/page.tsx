@@ -35,6 +35,7 @@ export default function RandevuAdmin() {
       <h1 className="text-2xl font-bold mb-6 text-slate-800">Randevu Talepleri ({messages.length})</h1>
       
       <div className="space-y-6">
+        {messages.length === 0 && <p className="text-slate-500">Kayıtlı randevu talebi bulunamadı.</p>}
         {messages.map((msg) => (
           <div key={msg.id} className={`p-6 border rounded-2xl shadow-sm transition-all bg-white ${msg.is_read ? "border-slate-200" : "border-purple-500 ring-2 ring-purple-500/10"}`}>
             
@@ -61,7 +62,6 @@ export default function RandevuAdmin() {
                 <p className="text-slate-400 font-bold uppercase text-[10px]">Randevu Detayları</p>
                 <p><span className="font-semibold">Hizmet:</span> {msg.service || "Belirtilmemiş"}</p>
                 <p><span className="font-semibold">Tip:</span> {msg.session_type || "Belirtilmemiş"}</p>
-                <p><span className="font-semibold">Yaş:</span> {msg.age || "Belirtilmemiş"}</p>
               </div>
             </div>
 

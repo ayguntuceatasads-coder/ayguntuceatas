@@ -164,4 +164,27 @@ export default function AppointmentPage() {
               </div>
             )}
 
-            {step
+            {step === 4 && (
+              <div className="text-center py-10 animate-in zoom-in-95 duration-500">
+                <div className="w-20 h-20 bg-[#6ec9c9]/20 text-[#0f4c5c] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold text-[#082b34] mb-3">Talebiniz Alındı!</h2>
+                <p className="text-slate-600 max-w-md mx-auto mb-8">
+                  {formData.name}, randevu talebiniz başarıyla iletilmiştir. Asistanlarımız en kısa sürede dönüş yaparak seans saatinizi kesinleştirecektir.
+                </p>
+                <div className="bg-slate-50 border border-slate-100 rounded-lg p-5 text-sm text-left max-w-sm mx-auto mb-8">
+                  <p className="mb-2"><span className="font-semibold text-slate-500">Hizmet:</span> <span className="text-[#082b34] font-medium">{formData.service}</span></p>
+                  <p><span className="font-semibold text-slate-500">Tip:</span> <span className="text-[#082b34] font-medium">{formData.sessionType}</span></p>
+                </div>
+                <Link href="/" className="inline-flex items-center text-[#0f4c5c] font-semibold hover:text-[#6ec9c9] transition-colors">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Anasayfaya Dön
+                </Link>
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

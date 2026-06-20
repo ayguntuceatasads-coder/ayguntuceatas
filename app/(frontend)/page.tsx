@@ -126,7 +126,7 @@ export default function HomePage() {
 
             {/* Slider Noktaları */}
             <div className="absolute bottom-12 left-0 right-0 z-30 flex justify-center gap-3">
-              {slides.map((_, i: number) => (
+              {slides.map((_slide: any, i: number) => (
                 <button 
                   key={i} 
                   onClick={() => setCurrentSlide(i)} 

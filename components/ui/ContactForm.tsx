@@ -2,19 +2,13 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { sendNotificationEmails } from "@/app/actions/send-email";
 import { Send, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 
 export default function ContactForm() {
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: ""
-  });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +25,23 @@ export default function ContactForm() {
       is_read: false
     });
 
-    setSending(false);
-
     if (error) {
       setStatus({ type: "error", message: "Mesajınız gönderilemedi: " + error.message });
     } else {
-      setStatus({ type: "success", message: "Mesajınız başarıyla iletildi!" });
+      // Supabase başarılıysa Maili tetikle
+      await sendNotificationEmails({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        subject: form.subject,
+        message: form.message,
+        type: "İletişim Mesajı"
+      });
+      
+      setStatus({ type: "success", message: "Mesajınız başarıyla iletildi! En kısa sürede dönüş sağlanacaktır." });
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
     }
+    setSending(false);
   };
 
   return (
@@ -79,7 +82,7 @@ export default function ContactForm() {
         <textarea required rows={4} value={form.message} onChange={(e) => setForm({...form, message: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#6ec9c9] transition-all text-sm resize-none" placeholder="Mesajınız..." />
       </div>
 
-      <button disabled={sending} type="submit" className="w-full bg-[#00878a] hover:bg-[#6ec9c9] text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg">
+      <button disabled={sending} type="submit" className="w-full bg-[#00878a] hover:bg-[#6ec9c9] hover:text-[#082b34] disabled:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg">
         {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />} Mesajı Gönder
       </button>
     </form>

@@ -128,6 +128,7 @@ export default function AdminSidebar() {
           </button>
           {openMenus.mesajlar && (
             <div className="pl-11 pr-2 py-2 space-y-1">
+              <Link href="/admin/mesajlar/iletisim" className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${isActive('/admin/mesajlar') ? 'text-[#6ec9c9] font-semibold' : 'hover:text-white hover:bg-white/5'}`}><List className="w-4 h-4" /> Tüm Mesajlar</Link>
               <Link href="/admin/mesajlar/iletisim" className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${isActive('/admin/mesajlar/iletisim') ? 'text-[#6ec9c9] font-semibold' : 'hover:text-white hover:bg-white/5'}`}><MessageSquare className="w-4 h-4" /> İletişim Formları</Link>
               <Link href="/admin/mesajlar/randevu" className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${isActive('/admin/mesajlar/randevu') ? 'text-[#6ec9c9] font-semibold' : 'hover:text-white hover:bg-white/5'}`}><CalendarCheck className="w-4 h-4" /> Randevu Talepleri</Link>
             </div>

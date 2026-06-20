@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     // Eğer adminden "Danışana mail gönder" seçildiyse hastaya da sonuç maili at
     if (send_email_to_patient) {
       const patientMailOptions = {
-        from: '"Ela Teknoloji & Tasarım" <ayguntuceatasads@gmail.com>',
+        from: '"Aygün Tuçe Ataş Önç" <ayguntuceatasads@gmail.com>',
         to: patient_email,
         subject: `${scale_name} Sonucunuz`,
         html: `

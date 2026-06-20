@@ -1,178 +1,116 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { ArrowLeft, ArrowRight, CheckCircle2, User, Video, Users, Baby, Activity } from "lucide-react";
+import Link from "next/link";
 
 export default function AppointmentPage() {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     service: "",
-    sessionType: "", // Yüz Yüze veya Online
+    sessionType: "",
     name: "",
+    age: "",
     phone: "",
     email: "",
     note: ""
   });
 
   const services = [
-    { id: "yetiskin", title: "Yetişkin Terapisi", icon: <User className="w-5 h-5" /> },
-    { id: "cocuk", title: "Çocuk & Ergen Terapisi", icon: <Baby className="w-5 h-5" /> },
-    { id: "cift", title: "Aile & Çift Terapisi", icon: <Users className="w-5 h-5" /> },
-    { id: "test", title: "Psikolojik Testler", icon: <Activity className="w-5 h-5" /> },
+    { title: "Yetişkin Terapisi", icon: <User className="w-5 h-5" /> },
+    { title: "Çocuk & Ergen Terapisi", icon: <Baby className="w-5 h-5" /> },
+    { title: "Aile & Çift Terapisi", icon: <Users className="w-5 h-5" /> },
+    { title: "Psikolojik Testler", icon: <Activity className="w-5 h-5" /> },
   ];
 
-  const handleNext = () => setStep((prev) => prev + 1);
-  const handlePrev = () => setStep((prev) => prev - 1);
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Burada Supabase'e kayıt veya mail gönderme işlemi tetiklenecek
-    setStep(4); // Başarılı ekranı
+    setLoading(true);
+
+    const { error } = await supabase.from("messages").insert({
+      type: "randevu",
+      name: formData.name,
+      age: formData.age,
+      email: formData.email,
+      phone: formData.phone,
+      service: formData.service,
+      session_type: formData.sessionType,
+      message: formData.note,
+      is_read: false
+    });
+
+    setLoading(false);
+    if (error) alert("Hata: " + error.message);
+    else setStep(4);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] py-12 md:py-20">
-      <div className="container mx-auto px-4 md:px-8 max-w-3xl">
-        
-        {/* Üst Yönlendirme & Başlık */}
-        <div className="mb-8">
-          <Link href="/iletisim" className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-[#0f4c5c] mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4 mr-2" /> İletişim Sayfasına Dön
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold text-[#082b34]">Online Randevu Talep Formu</h1>
-          <p className="text-slate-500 mt-2">Lütfen adımları takip ederek sizin için en uygun seans planını oluşturmamıza yardımcı olun.</p>
-        </div>
-
-        {/* Adım İlerleyişi (Progress Bar) */}
-        {step < 4 && (
-          <div className="flex items-center justify-between mb-8 relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 -z-10 rounded-full"></div>
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#6ec9c9] -z-10 rounded-full transition-all duration-500" style={{ width: `${(step - 1) * 50}%` }}></div>
-            
-            {[1, 2, 3].map((num) => (
-              <div key={num} className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-4 text-sm transition-colors ${step >= num ? 'bg-[#0f4c5c] text-white border-white shadow-md' : 'bg-slate-100 text-slate-400 border-white'}`}>
-                {num}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Form Alanı */}
-        <div className="bg-white border border-slate-200 p-8 md:p-10 rounded-2xl shadow-sm">
-          <form onSubmit={handleSubmit}>
-            
-            {/* 1. ADIM: HİZMET SEÇİMİ */}
-            {step === 1 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-xl font-bold text-[#082b34] mb-6">1. Hangi alanda destek almak istiyorsunuz?</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {services.map((srv) => (
-                    <div 
-                      key={srv.id} 
-                      onClick={() => setFormData({...formData, service: srv.title})}
-                      className={`cursor-pointer border-2 rounded-xl p-5 flex items-center gap-3 transition-all ${formData.service === srv.title ? 'border-[#6ec9c9] bg-[#6ec9c9]/10 text-[#0f4c5c]' : 'border-slate-200 text-slate-600 hover:border-[#6ec9c9]/40'}`}
-                    >
-                      <div className={formData.service === srv.title ? 'text-[#0f4c5c]' : 'text-slate-400'}>{srv.icon}</div>
-                      <span className="font-semibold">{srv.title}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-8 flex justify-end">
-                  <button type="button" onClick={handleNext} disabled={!formData.service} className="bg-[#0f4c5c] text-white disabled:opacity-50 disabled:cursor-not-allowed px-8 py-3 rounded-md font-bold flex items-center gap-2 transition-all">
-                    Sonraki Adım <ArrowRight className="w-4 h-4" />
+    <div className="min-h-screen bg-[#F8F9FA] py-12 px-4">
+      <div className="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+        <form onSubmit={handleSubmit}>
+          {step === 1 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-[#082b34]">Hizmet Seçiniz</h2>
+              <div className="grid grid-cols-1 gap-3">
+                {services.map((s) => (
+                  <button key={s.title} type="button" 
+                    className={`p-4 border rounded-lg flex items-center gap-3 transition ${formData.service === s.title ? "bg-[#00878a] text-white" : "hover:bg-slate-50"}`}
+                    onClick={() => setFormData({...formData, service: s.title})}>
+                    {s.icon} {s.title}
                   </button>
-                </div>
+                ))}
               </div>
-            )}
+              <button type="button" disabled={!formData.service} onClick={() => setStep(2)} className="w-full bg-[#00878a] text-white py-3 rounded-lg mt-4 disabled:opacity-50">Devam Et</button>
+            </div>
+          )}
 
-            {/* 2. ADIM: GÖRÜŞME TİPİ SEÇİMİ */}
-            {step === 2 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-xl font-bold text-[#082b34] mb-6">2. Görüşme tipini nasıl tercih edersiniz?</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div 
-                    onClick={() => setFormData({...formData, sessionType: "Yüz Yüze (Antalya Klinik)"})}
-                    className={`cursor-pointer border-2 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3 transition-all ${formData.sessionType === "Yüz Yüze (Antalya Klinik)" ? 'border-[#6ec9c9] bg-[#6ec9c9]/10 text-[#0f4c5c]' : 'border-slate-200 text-slate-600 hover:border-[#6ec9c9]/40'}`}
-                  >
-                    <User className={`w-8 h-8 ${formData.sessionType === "Yüz Yüze (Antalya Klinik)" ? 'text-[#0f4c5c]' : 'text-slate-400'}`} />
-                    <h3 className="font-bold text-lg">Klinikte Yüz Yüze</h3>
-                    <p className="text-xs opacity-80">Antalya'daki merkezimizde</p>
-                  </div>
-
-                  <div 
-                    onClick={() => setFormData({...formData, sessionType: "Online (Görüntülü)"})}
-                    className={`cursor-pointer border-2 rounded-xl p-6 flex flex-col items-center justify-center text-center gap-3 transition-all ${formData.sessionType === "Online (Görüntülü)" ? 'border-[#6ec9c9] bg-[#6ec9c9]/10 text-[#0f4c5c]' : 'border-slate-200 text-slate-600 hover:border-[#6ec9c9]/40'}`}
-                  >
-                    <Video className={`w-8 h-8 ${formData.sessionType === "Online (Görüntülü)" ? 'text-[#0f4c5c]' : 'text-slate-400'}`} />
-                    <h3 className="font-bold text-lg">Online Terapi</h3>
-                    <p className="text-xs opacity-80">Bulunduğunuz her yerden</p>
-                  </div>
-                </div>
-                <div className="mt-8 flex justify-between">
-                  <button type="button" onClick={handlePrev} className="text-slate-500 font-semibold px-6 py-3 rounded-md hover:bg-slate-100 transition-colors">Geri Dön</button>
-                  <button type="button" onClick={handleNext} disabled={!formData.sessionType} className="bg-[#0f4c5c] text-white disabled:opacity-50 disabled:cursor-not-allowed px-8 py-3 rounded-md font-bold flex items-center gap-2 transition-all">
-                    Sonraki Adım <ArrowRight className="w-4 h-4" />
+          {step === 2 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-[#082b34]">Görüşme Türü</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {["Online", "Yüz Yüze"].map((type) => (
+                  <button key={type} type="button"
+                    className={`p-6 border rounded-lg ${formData.sessionType === type ? "bg-[#00878a] text-white" : "hover:bg-slate-50"}`}
+                    onClick={() => setFormData({...formData, sessionType: type})}>
+                    {type}
                   </button>
-                </div>
+                ))}
               </div>
-            )}
-
-            {/* 3. ADIM: İLETİŞİM BİLGİLERİ */}
-            {step === 3 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-xl font-bold text-[#082b34] mb-2">3. İletişim Bilgileriniz</h2>
-                <p className="text-sm text-slate-500 mb-6">Talebinizle ilgili dönüş yapabilmemiz için bilgilerinizi eksiksiz doldurun.</p>
-                
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-[#082b34] mb-1.5">Adınız Soyadınız</label>
-                      <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full px-4 py-3 rounded-md border border-slate-300 focus:border-[#6ec9c9] focus:ring-2 focus:ring-[#6ec9c9]/20 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-[#082b34] mb-1.5">Telefon Numaranız</label>
-                      <input required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} type="tel" className="w-full px-4 py-3 rounded-md border border-slate-300 focus:border-[#6ec9c9] focus:ring-2 focus:ring-[#6ec9c9]/20 outline-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-[#082b34] mb-1.5">Kısaca Eklemek İstedikleriniz (Opsiyonel)</label>
-                    <textarea rows={3} value={formData.note} onChange={(e) => setFormData({...formData, note: e.target.value})} className="w-full px-4 py-3 rounded-md border border-slate-300 focus:border-[#6ec9c9] focus:ring-2 focus:ring-[#6ec9c9]/20 outline-none resize-none"></textarea>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-between">
-                  <button type="button" onClick={handlePrev} className="text-slate-500 font-semibold px-6 py-3 rounded-md hover:bg-slate-100 transition-colors">Geri Dön</button>
-                  <button type="submit" className="bg-[#6ec9c9] hover:bg-[#5dbaba] text-[#082b34] px-8 py-3 rounded-md font-bold flex items-center gap-2 transition-all shadow-md">
-                    Randevu Talebini Tamamla
-                  </button>
-                </div>
+              <div className="flex gap-2 mt-4">
+                <button type="button" onClick={() => setStep(1)} className="flex-1 border py-3 rounded-lg">Geri</button>
+                <button type="button" disabled={!formData.sessionType} onClick={() => setStep(3)} className="flex-1 bg-[#00878a] text-white py-3 rounded-lg">Devam Et</button>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* 4. ADIM: BAŞARILI EKRANI */}
-            {step === 4 && (
-              <div className="text-center py-10 animate-in zoom-in-95 duration-500">
-                <div className="w-20 h-20 bg-[#6ec9c9]/20 text-[#0f4c5c] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-10 h-10" />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-[#082b34] mb-3">Talebiniz Alındı!</h2>
-                <p className="text-slate-600 max-w-md mx-auto mb-8">
-                  {formData.name}, randevu talebiniz merkezimize başarıyla iletilmiştir. Asistanlarımız en kısa sürede <strong>{formData.phone}</strong> numaralı telefondan size dönüş yaparak seans saatinizi kesinleştirecektir.
-                </p>
-                <div className="bg-slate-50 border border-slate-100 rounded-lg p-5 text-sm text-left max-w-sm mx-auto mb-8">
-                  <p className="mb-2"><span className="font-semibold text-slate-500">Talep Edilen Hizmet:</span> <br/><span className="text-[#082b34] font-medium">{formData.service}</span></p>
-                  <p><span className="font-semibold text-slate-500">Görüşme Tipi:</span> <br/><span className="text-[#082b34] font-medium">{formData.sessionType}</span></p>
-                </div>
-                <Link href="/" className="inline-flex items-center text-[#0f4c5c] font-semibold hover:text-[#6ec9c9] transition-colors">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Anasayfaya Dön
-                </Link>
+          {step === 3 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-[#082b34]">İletişim Bilgileri</h2>
+              <input required placeholder="Ad Soyad" className="w-full p-3 border rounded" onChange={e => setFormData({...formData, name: e.target.value})} />
+              <input required type="number" placeholder="Yaş" className="w-full p-3 border rounded" onChange={e => setFormData({...formData, age: e.target.value})} />
+              <input required type="email" placeholder="E-posta" className="w-full p-3 border rounded" onChange={e => setFormData({...formData, email: e.target.value})} />
+              <input required placeholder="Telefon" className="w-full p-3 border rounded" onChange={e => setFormData({...formData, phone: e.target.value})} />
+              <textarea placeholder="Varsa notunuz" className="w-full p-3 border rounded" onChange={e => setFormData({...formData, note: e.target.value})} />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setStep(2)} className="flex-1 border py-3 rounded-lg">Geri</button>
+                <button disabled={loading} type="submit" className="flex-1 bg-[#00878a] text-white py-3 rounded-lg">
+                  {loading ? "Gönderiliyor..." : "Randevu Talebini Gönder"}
+                </button>
               </div>
-            )}
+            </div>
+          )}
 
-          </form>
-        </div>
-
+          {step === 4 && (
+            <div className="text-center py-10">
+              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-[#082b34]">Talebiniz Alındı!</h2>
+              <p className="mt-2 text-slate-600">Asistanlarımız en kısa sürede dönüş yapacaktır.</p>
+              <Link href="/" className="mt-6 block text-[#0f4c5c] font-bold">Anasayfaya Dön</Link>
+            </div>
+          )}
+        </form>
       </div>
     </div>
   );

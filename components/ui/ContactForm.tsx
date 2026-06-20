@@ -22,7 +22,7 @@ export default function ContactForm() {
     setStatus(null);
 
     const { error } = await supabase.from("messages").insert({
-      type: "iletisim", // Form türü ayrımı
+      type: "iletisim",
       name: form.name,
       email: form.email,
       phone: form.phone,
@@ -31,18 +31,18 @@ export default function ContactForm() {
       is_read: false
     });
 
+    setSending(false);
+
     if (error) {
       setStatus({ type: "error", message: "Mesajınız gönderilemedi: " + error.message });
     } else {
-      setStatus({ type: "success", message: "Mesajınız başarıyla iletildi! En kısa sürede dönüş sağlanacaktır." });
+      setStatus({ type: "success", message: "Mesajınız başarıyla iletildi!" });
       setForm({ name: "", email: "", phone: "", subject: "", message: "" });
     }
-    setSending(false);
   };
 
   return (
     <form onSubmit={handleSendMessage} className="space-y-5 text-left">
-      
       {status && (
         <div className={`p-4 rounded-xl flex items-center gap-3 border text-sm font-semibold ${
           status.type === "success" ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-red-500/10 border-red-500/20 text-red-400"
@@ -70,19 +70,18 @@ export default function ContactForm() {
         </div>
         <div>
           <label className="block text-xs font-bold text-[#a8cfcf] uppercase tracking-wider mb-1.5">Konu *</label>
-          <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#6ec9c9] transition-all text-sm" placeholder="Örn: Seans Ücretleri Hakkında" />
+          <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#6ec9c9] transition-all text-sm" placeholder="Örn: Seans Ücretleri" />
         </div>
       </div>
 
       <div>
         <label className="block text-xs font-bold text-[#a8cfcf] uppercase tracking-wider mb-1.5">Mesajınız *</label>
-        <textarea required rows={4} value={form.message} onChange={(e) => setForm({...form, message: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#6ec9c9] transition-all text-sm resize-none" placeholder="Sorularınızı buraya detaylıca yazabilirsiniz..." />
+        <textarea required rows={4} value={form.message} onChange={(e) => setForm({...form, message: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-[#6ec9c9] transition-all text-sm resize-none" placeholder="Mesajınız..." />
       </div>
 
-      <button disabled={sending} type="submit" className="w-full bg-[#00878a] hover:bg-[#6ec9c9] hover:text-[#082b34] disabled:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg">
+      <button disabled={sending} type="submit" className="w-full bg-[#00878a] hover:bg-[#6ec9c9] text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg">
         {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />} Mesajı Gönder
       </button>
-
     </form>
   );
 }

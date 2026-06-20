@@ -2,21 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase"; // Client supabase istemcini kullanıyoruz
-import { Menu, X } from "lucide-react"; // İkonlar için
+import { supabase } from "@/lib/supabase"; // Client supabase istemcin
+import { Menu, X } from "lucide-react"; // İkonlar
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [logoSrc, setLogoSrc] = useState('/images/logo/logo.png');
 
+  // Sayfa yüklendiğinde logo verisini çekiyoruz
   useEffect(() => {
-    // Logo'yu client tarafında çekiyoruz
     async function fetchLogo() {
       const { data } = await supabase
         .from('site_settings')
         .select('logo_url')
         .eq('id', 1)
         .maybeSingle();
+      
       if (data?.logo_url) setLogoSrc(data.logo_url);
     }
     fetchLogo();
@@ -63,29 +64,32 @@ export default function Navbar() {
           <Link href="/iletisim" className="hover:text-[#00878a] transition-colors">İletişim</Link>
         </nav>
 
-        {/* Randevu Butonu */}
+        {/* Randevu Butonu (Masaüstü) */}
         <div className="hidden md:block">
           <Link href="/randevu" className="bg-[#00878a] hover:bg-[#0f4c5c] text-white px-6 py-2.5 rounded-md text-sm font-bold shadow-sm transition-all">
             Online Randevu
           </Link>
         </div>
 
-        {/* Mobil Menü Butonu (Çalışır Hale Getirildi) */}
-        <button className="md:hidden p-2 text-[#082b34]" onClick={() => setIsOpen(!isOpen)}>
+        {/* Mobil Menü Tetikleyici Butonu */}
+        <button 
+          className="md:hidden p-2 text-[#082b34] z-50" 
+          onClick={() => setIsOpen(!isOpen)}
+        >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
-      {/* Mobil Menü İçeriği (Yeni Eklendi) */}
+      {/* Mobil Menü İçeriği */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 px-4 py-6 flex flex-col gap-4 text-[#082b34] font-semibold">
+        <div className="md:hidden bg-white border-t border-slate-100 px-4 py-6 flex flex-col gap-4 text-[#082b34] font-semibold text-center animate-in slide-in-from-top-4">
           <Link href="/" onClick={() => setIsOpen(false)}>Anasayfa</Link>
           <Link href="/hakkimda" onClick={() => setIsOpen(false)}>Hakkımda</Link>
           <Link href="/hizmetlerimiz" onClick={() => setIsOpen(false)}>Hizmetlerimiz</Link>
           <Link href="/sikca-sorulan-sorular" onClick={() => setIsOpen(false)}>S.S.S.</Link>
           <Link href="/yazilarimiz" onClick={() => setIsOpen(false)}>Yazılarımız</Link>
           <Link href="/iletisim" onClick={() => setIsOpen(false)}>İletişim</Link>
-          <Link href="/randevu" className="bg-[#00878a] text-white px-4 py-3 rounded-md text-center mt-2" onClick={() => setIsOpen(false)}>Online Randevu</Link>
+          <Link href="/randevu" className="bg-[#00878a] text-white px-4 py-3 rounded-md mt-2" onClick={() => setIsOpen(false)}>Online Randevu</Link>
         </div>
       )}
     </header>

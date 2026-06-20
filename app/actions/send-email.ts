@@ -2,6 +2,7 @@
 
 import nodemailer from "nodemailer";
 
+// 1. İLETİŞİM VE RANDEVU FORMLARI İÇİN (Mevcut Olan)
 export async function sendNotificationEmails(data: { 
   name: string; 
   email: string; 
@@ -11,19 +12,18 @@ export async function sendNotificationEmails(data: {
   type: string 
 }) {
   try {
-    // Tıpkı ölçeklerde çalıştığı gibi sabit şifreli Nodemailer bağlantısı
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: "ayguntuceatasads@gmail.com",
-        pass: "ihgi emxr jpzl brrh" // 16 haneli uygulama şifresi
+        pass: "ihgi emxr jpzl brrh" 
       },
     });
 
-    // 1. Admibe (Sana) Gidecek Bildirim Maili
+    // Admibe (Sana) Gidecek Bildirim Maili
     await transporter.sendMail({
       from: '"Web Sitesi Bildirim" <ayguntuceatasads@gmail.com>',
-      to: "ayguntuceatasads@gmail.com", // Kendi mailin
+      to: "ayguntuceatasads@gmail.com", 
       subject: `YENİ TALEBİ: ${data.name} - ${data.type}`,
       html: `
         <div style="font-family: sans-serif; color: #333; max-w: 600px; margin: auto;">
@@ -39,7 +39,7 @@ export async function sendNotificationEmails(data: {
       `
     });
 
-    // 2. Müşteriye Giden Otomatik Yanıt Maili
+    // Müşteriye Giden Otomatik Yanıt Maili
     if (data.email) {
       await transporter.sendMail({
         from: '"Uzm. Psk. Aygün Tuce Ataş" <ayguntuceatasads@gmail.com>',
@@ -60,6 +60,80 @@ export async function sendNotificationEmails(data: {
     return { success: true };
   } catch (error) {
     console.error("Mail hatası:", error);
+    return { success: false, error };
+  }
+}
+
+
+// 2. YENİ ÖN GÖRÜŞME FORMLARI İÇİN (Esnek JSONB Yapısı)
+export async function sendIntakeFormEmail(data: {
+  formTitle: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone: string;
+  formData: Record<string, any>;
+}) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "ayguntuceatasads@gmail.com",
+        pass: "ihgi emxr jpzl brrh"
+      },
+    });
+
+    // Form datasındaki tüm key-value çiftlerini şık bir HTML listesine çeviriyoruz
+    const formFieldsHtml = Object.entries(data.formData)
+      .map(([label, value]) => {
+        if (!value || (Array.isArray(value) && value.length === 0)) return "";
+        return `
+          <div style="margin-bottom: 12px; padding-bottom: 8px; border-b: 1px solid #f0f0f0;">
+            <strong style="color: #0f4c5c; display: block; font-size: 13px; text-transform: uppercase;">${label}</strong>
+            <span style="color: #333; font-size: 15px;">${Array.isArray(value) ? value.join(", ") : value}</span>
+          </div>
+        `;
+      })
+      .join("");
+
+    // Uzmana Giden Detaylı Bildirim
+    await transporter.sendMail({
+      from: '"Klinik Otomasyonu" <ayguntuceatasads@gmail.com>',
+      to: "ayguntuceatasads@gmail.com",
+      subject: `YENİ FORM: ${data.formTitle} - ${data.patientName}`,
+      html: `
+        <div style="font-family: sans-serif; color: #333; max-w: 600px; margin: auto; border: 1px solid #eee; padding: 25px; border-radius: 15px;">
+          <h2 style="color: #00878a; margin-top: 0;">Yeni ${data.formTitle} Dolduruldu</h2>
+          <p><strong>Danışan:</strong> ${data.patientName}</p>
+          <p><strong>Telefon:</strong> ${data.patientPhone}</p>
+          <p><strong>E-posta:</strong> ${data.patientEmail || "Belirtilmemiş"}</p>
+          <hr style="border: 0; border-top: 2px solid #00878a; margin: 20px 0;" />
+          <h3 style="color: #0f4c5c;">Form Detayları:</h3>
+          ${formFieldsHtml}
+        </div>
+      `,
+    });
+
+    // Danışana Giden Onay
+    if (data.patientEmail) {
+      await transporter.sendMail({
+        from: '"Uzm. Psk. Aygün Tuce Ataş" <ayguntuceatasads@gmail.com>',
+        to: data.patientEmail,
+        subject: `${data.formTitle} Başarıyla Alındı`,
+        html: `
+          <div style="font-family: sans-serif; color: #333; max-w: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #082b34;">Merhaba ${data.patientName},</h2>
+            <p>Kliniğimize başvurunuz kapsamında doldurmuş olduğunuz <strong>${data.formTitle}</strong> sistemimize güvenli bir şekilde kaydedilmiştir.</p>
+            <p>Paylaştığınız bilgiler gizlilik ilkelerimiz doğrultusunda tamamen saklı tutulacaktır. Seans planlamanız için en kısa sürede sizinle iletişime geçeceğiz.</p>
+            <br/>
+            <p>Sağlıklı günler dileriz.</p>
+          </div>
+        `
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Form mail hatası:", error);
     return { success: false, error };
   }
 }

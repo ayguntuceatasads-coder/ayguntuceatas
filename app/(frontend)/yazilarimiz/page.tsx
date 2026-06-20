@@ -1,72 +1,127 @@
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { FileText, BookOpen, Video, ArrowRight } from "lucide-react";
-import PageHero from "@/components/ui/PageHero";
-import type { Metadata } from "next";
+import { Loader2, ArrowRight, Calendar, Home, ChevronRight, FileText, Book, Video } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Yazılarımız ve Kaynaklar | Uzm. Psk. Aygün Tuce Ataş",
-  description: "Klinik psikoloji makaleleri, ebeveynler için kitap önerileri ve ruh sağlığı üzerine bilgilendirici video içerikler.",
-};
+export default function YazilarimizPage() {
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Varsayılan olarak "makale" sekmesi açık gelsin
+  const [activeTab, setActiveTab] = useState("makale"); 
 
-export default async function PostsListPage() {
-  const supabase = await createClient();
+  useEffect(() => {
+    async function fetchPosts() {
+      setLoading(true);
+      
+      // Eski kaydettiğin "blog" verilerini de kaybetmemek için makale sekmesinde ikisini birden çağırıyoruz
+      const typesToFetch = activeTab === "makale" ? "type.eq.makale,type.eq.blog" : `type.eq.${activeTab}`;
 
-  const { data: posts } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .or(typesToFetch) // Seçili sekmeye göre filtreler
+        .order("created_at", { ascending: false });
 
-  const getTypeBadge = (type: string) => {
-    switch (type) {
-      case 'kitap': return { text: 'Kitap Önerisi', color: 'bg-purple-50 text-purple-700 border-purple-100', icon: <BookOpen className="w-3.5 h-3.5" /> };
-      case 'video': return { text: 'Video İçerik', color: 'bg-red-50 text-red-700 border-red-100', icon: <Video className="w-3.5 h-3.5" /> };
-      default: return { text: 'Makale', color: 'bg-teal-50 text-[#00878a] border-teal-100', icon: <FileText className="w-3.5 h-3.5" /> };
+      if (!error && data) {
+        setPosts(data);
+      }
+      setLoading(false);
     }
-  };
+    fetchPosts();
+  }, [activeTab]); // activeTab değiştiğinde verileri baştan çeker
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-24">
-      <PageHero 
-        title="Yazılarımız & Kaynaklar" 
-        breadcrumbs={[{ label: "Yazılarımız" }]}
-        bgImage="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2073"
-      />
+    <div className="bg-slate-50 min-h-screen">
+      
+      {/* HERO & BREADCRUMB BÖLÜMÜ */}
+      <div className="bg-[#082b34] text-white pt-32 pb-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <nav className="flex items-center gap-2 text-sm text-slate-300 mb-6">
+            <Link href="/" className="hover:text-white transition-colors flex items-center gap-1">
+              <Home className="w-4 h-4" /> Anasayfa
+            </Link>
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-[#00878a] font-medium">İçeriklerimiz</span>
+          </nav>
 
-      <section className="container mx-auto px-4 md:px-8 max-w-7xl mt-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts?.map((post) => {
-            const badge = getTypeBadge(post.type);
-            return (
-              <article key={post.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                <div>
-                  {post.image_url && (
-                    <div className="relative h-48 w-full overflow-hidden bg-slate-100 border-b border-slate-100">
-                      <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${badge.color}`}>
-                        {badge.icon} {badge.text}
-                      </span>
-                      {post.category && <span className="text-xs text-slate-400 font-medium"># {post.category}</span>}
-                    </div>
-                    <h3 className="text-lg font-bold text-[#082b34] mb-2 line-clamp-2 group-hover:text-[#5e338d] transition-colors">{post.title}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed line-clamp-3">{post.excerpt}</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">İçeriklerimiz</h1>
+          <p className="text-lg text-slate-300 max-w-2xl">
+            Sizin için hazırladığımız güncel makaleler, önerdiğimiz kitaplar ve bilgilendirici videolar.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        {/* FİLTRELEME SEKMELERİ (TABS) */}
+        <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <button 
+            onClick={() => setActiveTab("makale")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
+              activeTab === "makale" ? "bg-[#00878a] text-white shadow-lg shadow-[#00878a]/30" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            <FileText className="w-5 h-5" /> Yazılarımız
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab("kitap")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
+              activeTab === "kitap" ? "bg-[#00878a] text-white shadow-lg shadow-[#00878a]/30" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            <Book className="w-5 h-5" /> Kitaplarımız
+          </button>
+
+          <button 
+            onClick={() => setActiveTab("video")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all ${
+              activeTab === "video" ? "bg-[#00878a] text-white shadow-lg shadow-[#00878a]/30" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            <Video className="w-5 h-5" /> Videolarımız
+          </button>
+        </div>
+
+        {/* İÇERİK LİSTESİ */}
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-[#00878a]" />
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-20 text-slate-500 bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <p>Bu kategoriye henüz içerik eklenmemiş.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post) => (
+              <div key={post.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 flex flex-col">
+                {post.image_url && (
+                  <div className="h-52 overflow-hidden">
+                    <img src={post.image_url} alt={post.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                   </div>
-                </div>
-                <div className="p-6 pt-0 mt-auto">
-                  <Link href={`/yazilarimiz/${post.slug}`} className="inline-flex items-center gap-1.5 text-sm font-bold text-[#00878a] hover:text-[#5e338d] transition-colors group/link w-fit">
-                    Devamını Oku <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                )}
+                
+                <div className="p-8 flex flex-col flex-grow">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#00878a] mb-4 uppercase tracking-wider">
+                    <Calendar className="w-4 h-4" />
+                    {new Date(post.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                  <h3 className="text-xl font-bold text-[#082b34] mb-3 line-clamp-2">{post.title}</h3>
+                  <p className="text-slate-600 mb-6 line-clamp-3 flex-grow">{post.description}</p>
+                  
+                  <Link href={`/yazilarimiz/${post.slug}`} className="inline-flex items-center gap-2 text-[#00878a] font-bold hover:text-[#082b34] transition-colors mt-auto">
+                    Detayları İncele <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

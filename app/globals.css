@@ -130,12 +130,24 @@
   }
 }
 
-/* Tailwind'in ezdiği liste stillerini geri getirir */
-.prose ul {
+/* Tailwind'in sıfırladığı liste stillerini zorla geri getiriyoruz */
+/* Hem admin panelindeki editör (contenteditable) hem de ön yüz (.prose) için geçerli */
+
+.prose ul, [contenteditable="true"] ul, .editor-content ul {
   list-style-type: disc !important;
   padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
 }
-.prose ol {
+
+.prose ol, [contenteditable="true"] ol, .editor-content ol {
   list-style-type: decimal !important;
   padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.prose li, [contenteditable="true"] li, .editor-content li {
+  display: list-item !important;
+  margin-bottom: 0.25rem !important;
 }

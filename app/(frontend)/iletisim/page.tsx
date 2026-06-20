@@ -32,7 +32,7 @@ export default async function ContactPage() {
           <div className="lg:col-span-5 space-y-6">
             <div className="mb-10">
               <span className="text-[#00878a] font-bold text-sm tracking-widest uppercase mb-3 block">BİZE ULAŞIN</span>
-              <h2 className="text-3xl font-bold text-[#082b34] mb-4">Kliniğimize Hoş Geldiniz</h2>
+              <h2 className="text-3xl font-bold text-[#082b34] mb-4">Merkezimize Hoş Geldiniz</h2>
               <p className="text-slate-600 leading-relaxed">
                 Randevu almak, hizmetlerimiz hakkında bilgi edinmek veya aklınızdaki soruları sormak için aşağıdaki iletişim kanallarından bize ulaşabilirsiniz.
               </p>

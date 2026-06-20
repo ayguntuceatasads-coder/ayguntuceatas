@@ -90,7 +90,7 @@ export default function HomePage() {
             <div className="absolute inset-0 z-20 flex items-center px-6 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
               <div className="max-w-3xl space-y-8 text-left">
                 <span className="inline-block text-[#6ec9c9] font-bold text-sm tracking-widest uppercase bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-sm">
-                  KLİNİK PSİKOLOJİ MERKEZİ
+                  Özel Sağlık Meslek Hizmet Birimi
                 </span>
                 
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight drop-shadow-2xl">
@@ -143,7 +143,7 @@ export default function HomePage() {
         <div className="flex justify-between items-end mb-12">
           <div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-[#082b34] tracking-tight">Uzmanlık Alanları</h2>
-            <p className="text-slate-500 mt-2 text-base">Kliniğimizde aktif olarak verilen profesyonel terapi hizmetleri.</p>
+            <p className="text-slate-500 mt-2 text-base">Merkezimizde aktif olarak verilen profesyonel terapi hizmetleri.</p>
           </div>
           <Link href="/hizmetlerimiz" className="hidden md:flex text-[#00878a] font-bold items-center gap-1 hover:gap-2 transition-all">Tümünü Gör <ArrowRight className="w-4 h-4" /></Link>
         </div>

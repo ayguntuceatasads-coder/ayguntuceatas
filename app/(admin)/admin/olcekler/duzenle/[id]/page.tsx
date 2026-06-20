@@ -75,7 +75,7 @@ export default function AdminOlcekDuzenlePage() {
   
   const removeOption = (qIndex: number, oIndex: number) => {
     const newQs = [...questions];
-    newQs[qIndex].options = newQs[qIndex].options.filter((_, i) => i !== oIndex);
+    newQs[qIndex].options = newQs[qIndex].options.filter((_: any, i: number) => i !== oIndex);
     setQuestions(newQs);
   };
 

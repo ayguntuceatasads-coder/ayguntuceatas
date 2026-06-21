@@ -30,9 +30,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex bg-slate-50 min-h-screen">
+    // 1. MÜDAHALE: En dış div'e w-full ve overflow-x-hidden eklendi (Sayfanın sağa kaymasını kilitler)
+    <div className="flex bg-slate-50 min-h-screen w-full overflow-x-hidden relative">
       <AdminSidebar />
-      <main className="flex-1 overflow-y-auto p-6 md:p-10">
+      
+      {/* 2. MÜDAHALE: main etiketine min-w-0 eklendi. (Tabloların dışarı taşmasını çözen asıl kod budur) */}
+      {/* Mobilde p-4, bilgisayarda p-10 ile boşluklar optimize edildi */}
+      <main className="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden p-4 md:p-10">
         {children}
       </main>
     </div>

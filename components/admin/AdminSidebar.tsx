@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Home, UserCircle, Briefcase, FileText, Mail, 
   Settings, ChevronDown, ChevronRight, Plus, List, CalendarCheck, 
   MessageSquare, MessageCircleQuestion, ClipboardList, Users, 
-  LogOut, ExternalLink 
+  LogOut, ExternalLink, FileSignature 
 } from "lucide-react";
 
 export default function AdminSidebar() {
@@ -157,6 +157,11 @@ export default function AdminSidebar() {
           )}
         </div>
 
+        {/* YASAL BELGELER LİNKİ EKLENDİ */}
+        <Link href="/admin/yasal" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/yasal') ? 'bg-[#6ec9c9] text-[#082b34] font-bold' : 'hover:bg-white/5 hover:text-white'}`}>
+          <FileSignature className="w-5 h-5" /> Yasal Belgeler
+        </Link>
+
         <Link href="/admin/kullanicilar" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/kullanicilar') ? 'bg-[#6ec9c9] text-[#082b34] font-bold' : 'hover:bg-white/5 hover:text-white'}`}>
           <Users className="w-5 h-5" /> Yönetici Hesapları
         </Link>
@@ -166,8 +171,9 @@ export default function AdminSidebar() {
         </Link>
       </nav>
 
-      {/* Alt Sabit Butonlar */}
+      {/* Alt Sabit Butonlar (Dış Link & Çıkış Yap) */}
       <div className="p-4 border-t border-slate-800 bg-[#061d24] space-y-1">
+        {/* Yeni Sekmede Siteyi Açan Buton */}
         <a 
           href="/" 
           target="_blank" 
@@ -180,6 +186,7 @@ export default function AdminSidebar() {
           <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
         </a>
 
+        {/* Çıkış Yapma Butonu */}
         <button 
           onClick={handleSignOut}
           className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"

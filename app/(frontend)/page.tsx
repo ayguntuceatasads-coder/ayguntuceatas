@@ -173,7 +173,7 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-extrabold text-[#082b34] tracking-tight">Güncel Yazılar & Makaleler</h2>
             <p className="text-slate-500 mt-2 text-base">Ruh sağlığı, farkındalık ve güncel psikoloji okumaları.</p>
           </div>
-          <Link href="/icerikler" className="hidden md:flex text-[#00878a] font-bold items-center gap-1 hover:gap-2 transition-all">Tüm Yazılar <ArrowRight className="w-4 h-4" /></Link>
+          <Link href="/yazilarimiz" className="hidden md:flex text-[#00878a] font-bold items-center gap-1 hover:gap-2 transition-all">Tüm Yazılar <ArrowRight className="w-4 h-4" /></Link>
         </div>
         
         <div className="flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
@@ -190,7 +190,7 @@ export default function HomePage() {
                 <span className="text-xs font-bold uppercase tracking-widest text-[#00878a] mb-3 block">Makale / Bilgi</span>
                 <h3 className="text-lg font-bold text-[#082b34] group-hover:text-white mb-2 line-clamp-2 transition-colors">{post.title}</h3>
                 <p className="text-slate-500 group-hover:text-slate-300 text-sm line-clamp-3 mb-6 flex-1 transition-colors">{post.summary || "İçeriğin tamamını okumak için tıklayın."}</p>
-                <Link href={`/icerikler/${post.slug}`} className="w-10 h-10 rounded-xl border border-slate-200 bg-white text-[#082b34] group-hover:bg-[#00878a] group-hover:text-white group-hover:border-[#00878a] flex items-center justify-center transition-all shadow-sm">
+                <Link href={`/yazilarimiz/${post.slug}`} className="w-10 h-10 rounded-xl border border-slate-200 bg-white text-[#082b34] group-hover:bg-[#00878a] group-hover:text-white group-hover:border-[#00878a] flex items-center justify-center transition-all shadow-sm">
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

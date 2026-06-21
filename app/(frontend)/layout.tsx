@@ -7,6 +7,9 @@ import FloatingButtons from "@/components/ui/FloatingButtons";
 import CookieBanner from "@/components/ui/CookieBanner";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 
+// Google Analytics bileşenini import ediyoruz
+import { GoogleAnalytics } from "@next/third-parties/google";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -15,6 +18,12 @@ export const metadata: Metadata = {
     default: "Uzm. Psk. Aygün Tuce Ataş | Antalya Psikolojik Danışmanlık",
   },
   description: "Antalya Muratpaşa'da bilimsel temellere dayanan, güvenilir ve etik psikolojik danışmanlık hizmetleri.",
+  
+  // SEARCH CONSOLE DOĞRULAMA KODU (Buraya eklenir)
+  verification: {
+    google: "t7JQ3HhDdPvT5mN6mW_4ZkWRH76QcKT1", 
+    // Örn: "dBdfX_be762837468234768234"
+  },
 };
 
 export default function FrontendLayout({
@@ -43,6 +52,9 @@ export default function FrontendLayout({
         {/* Çerez ve Kaydırma Kontrolleri */}
         <CookieBanner />
         <ScrollToTop />
+        
+        {/* GOOGLE ANALYTICS KODU (G-XXXXXX formatındaki kimliği buraya yazın) */}
+        <GoogleAnalytics gaId="G-ÖLÇÜM_KİMLİĞİNİZ" />
         
       </body>
     </html>

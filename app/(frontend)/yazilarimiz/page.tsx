@@ -30,7 +30,7 @@ export default async function YazilarimizPage() {
   const { data: posts } = await supabase
     .from("posts")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   // 3. GOOGLE SCHEMA (JSON-LD) - Blog/Makale Listesi (ItemList)
   const blogListSchema = {

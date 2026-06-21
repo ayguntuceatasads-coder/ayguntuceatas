@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
-// Next.js'e bu sayfayı ASLA önbelleğe (cache) almamasını söyleriz:
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
@@ -11,24 +11,29 @@ interface Props {
 }
 
 export default async function DinamikYasalSayfa({ params }: Props) {
-  // Sunucu tarafında (Server Component) güvenli Supabase bağlantısı
+  // GÜVENLİK KONTROLÜ: Eğer slug (uzantı) yoksa doğrudan 404'e at veya durdur.
+  if (!params || !params.slug) {
+    return notFound();
+  }
+
   const supabase = await createClient();
 
+  // Supabase'den veriyi çekerken .maybeSingle() kullanalım ki hata fırlatmak yerine null dönsün
   const { data: doc, error } = await supabase
     .from("legal_documents")
     .select("*")
     .eq("slug", params.slug)
-    .single();
+    .maybeSingle();
 
-  // HATA YAKALAMA EKRANI: Eğer belge yoksa veya izin hatası varsa net olarak gösterecek
+  // EĞER BELGE YOKSA VEYA HATA VARSA
   if (error || !doc) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-red-100 max-w-lg w-full text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Belge Çekilemedi</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Belge Bulunamadı</h1>
           <p className="text-sm text-slate-500 mb-6">
-            Sistem <b>/yasal/{params.slug}</b> adresinde bir belge aradı ancak bulamadı veya erişim reddedildi.
+            Sistem <b>/yasal/{params.slug}</b> adresinde bir belge aradı ancak bulamadı. Bu sözleşme silinmiş veya adresi değişmiş olabilir.
           </p>
           
           {error && (
@@ -46,12 +51,11 @@ export default async function DinamikYasalSayfa({ params }: Props) {
     );
   }
 
-  // BAŞARILI EKRAN: Belge bulunduğunda gösterilecek şık tasarım
+  // BAŞARILI EKRAN: Belge bulunduğunda gösterilecek sayfa
   return (
     <div className="min-h-screen bg-slate-50/50 py-16 md:py-24">
       <div className="max-w-4xl mx-auto px-6">
         
-        {/* Üst Tasarım Alanı */}
         <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm mb-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-[#0f4c5c]/10 text-[#0f4c5c] rounded-2xl">
@@ -67,7 +71,6 @@ export default async function DinamikYasalSayfa({ params }: Props) {
           </div>
         </div>
 
-        {/* Dinamik İçerik (Zengin Metin Çıktısı) */}
         <div className="bg-white border border-slate-200 p-8 md:p-12 rounded-3xl shadow-sm">
           <article 
             className="prose prose-slate max-w-none prose-headings:text-[#082b34] prose-headings:font-bold prose-p:text-slate-600 prose-p:leading-relaxed prose-strong:text-slate-900 prose-p:text-sm md:prose-p:text-base prose-a:text-[#6ec9c9]"

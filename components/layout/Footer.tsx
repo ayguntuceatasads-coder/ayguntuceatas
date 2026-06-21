@@ -55,7 +55,7 @@ export default function Footer() {
           </p>
           <div className="pt-2 flex gap-3">
             <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-800/60 text-[#6ec9c9] px-2.5 py-1 rounded-md border border-slate-700/50">
-              Klinik v2.0
+              Psikolog v2.0
             </span>
           </div>
         </div>

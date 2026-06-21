@@ -89,7 +89,7 @@ export default async function DinamikYasalSayfa({ params }: Props) {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">{doc.title}</h1>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Uzm. Psk. Aygün Tuçe Ataş Önç Kliniği Resmi Mevzuat Metni</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Uzm. Psk. Aygün Tuçe Ataş Önç Resmi Mevzuat Metni</p>
             </div>
           </div>
           <div className="text-[11px] font-mono font-bold text-slate-400 border bg-slate-50 px-3 py-1.5 rounded-xl">

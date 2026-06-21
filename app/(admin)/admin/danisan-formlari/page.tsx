@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { FileText, Search, CheckCircle2, X, Clock, User, Phone, Mail, Filter } from "lucide-react";
+import { FileText, Search, CheckCircle2, X, Clock, User, Phone, Mail, Filter, Link as LinkIcon, AlertCircle } from "lucide-react";
 
 // Form tiplerini Türkçe ve şık etiketlere çeviren yardımcı obje
 const FORM_TYPES: Record<string, { title: string; color: string }> = {
@@ -16,9 +16,22 @@ const FORM_TYPES: Record<string, { title: string; color: string }> = {
   trafik_isiklari: { title: "Trafik Işıkları", color: "bg-amber-100 text-amber-700 border-amber-200" },
 };
 
+// Hızlı kopyalama için link listesi
+const QUICK_LINKS = [
+  { title: "Yetişkin Ön Görüşme", slug: "yetiskin-on-gorusme" },
+  { title: "Çocuk/Ergen Ön Görüşme", slug: "cocuk-ergen-on-gorusme" },
+  { title: "Düşünce Kayıt", slug: "dusunce-kayit" },
+  { title: "Olay-Duygu (ABC)", slug: "olay-duygu-dusunce" },
+  { title: "Kanıtları Tarama", slug: "kanitlari-tarama" },
+  { title: "Haftalık Planlama", slug: "haftalik-planlama" },
+  { title: "Başa Çıkma Kartı", slug: "basa-cikma-karti" },
+  { title: "Trafik Işıkları", slug: "trafik-isiklari" },
+];
+
 export default function DanisanFormlariAdmin() {
   const [forms, setForms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [selectedForm, setSelectedForm] = useState<any | null>(null);
@@ -29,12 +42,19 @@ export default function DanisanFormlariAdmin() {
 
   const fetchForms = async () => {
     setLoading(true);
-    const { data } = await supabase
+    setErrorMsg(null);
+    
+    const { data, error } = await supabase
       .from("intake_forms")
       .select("*")
       .order("created_at", { ascending: false });
     
-    if (data) setForms(data);
+    if (error) {
+      console.error("Supabase Hatası:", error);
+      setErrorMsg(error.message);
+    } else if (data) {
+      setForms(data);
+    }
     setLoading(false);
   };
 
@@ -46,9 +66,17 @@ export default function DanisanFormlariAdmin() {
     }
   };
 
+  // Link kopyalama fonksiyonu
+  const handleCopyLink = (slug: string) => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(`${window.location.origin}/${slug}`);
+      alert("Link kopyalandı! Danışanınıza gönderebilirsiniz.");
+    }
+  };
+
   // Arama ve Filtreleme Mantığı
   const filteredForms = forms.filter(f => {
-    const matchesSearch = f.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = f.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (f.patient_phone && f.patient_phone.includes(searchTerm));
     const matchesType = filterType === "all" || f.form_type === filterType;
     return matchesSearch && matchesType;
@@ -58,7 +86,7 @@ export default function DanisanFormlariAdmin() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto min-h-screen bg-slate-50/50">
       
       {/* Üst Başlık ve İstatistikler */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#082b34] flex items-center gap-3">
             <FileText className="w-8 h-8 text-[#6ec9c9]" />
@@ -77,6 +105,36 @@ export default function DanisanFormlariAdmin() {
           </div>
         </div>
       </div>
+
+      {/* YENİ: HIZLI FORM LİNKLERİ ALANI */}
+      <div className="bg-[#082b34] p-5 rounded-2xl border border-slate-800 shadow-sm mb-8 flex flex-col md:flex-row items-center gap-4">
+        <div className="shrink-0 text-white flex items-center gap-2 font-bold text-sm">
+          <LinkIcon className="w-4 h-4 text-[#6ec9c9]" /> Hızlı Linkler:
+        </div>
+        <div className="flex overflow-x-auto gap-2 pb-2 md:pb-0 w-full custom-scrollbar">
+          {QUICK_LINKS.map((link, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleCopyLink(link.slug)}
+              className="whitespace-nowrap px-3 py-1.5 bg-slate-800 text-slate-300 text-xs font-medium rounded-lg border border-slate-700 hover:bg-[#6ec9c9] hover:text-[#082b34] hover:border-[#6ec9c9] transition-all flex items-center gap-1.5"
+            >
+              <LinkIcon className="w-3 h-3" /> {link.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Veritabanı Hata Uyarısı */}
+      {errorMsg && (
+        <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          <div>
+            <strong className="block font-bold">Veriler çekilemedi!</strong>
+            <span className="text-sm">Hata detayı: {errorMsg}</span>
+            <p className="text-xs mt-1 text-red-500">Muhtemelen Supabase tablosu henüz oluşturulmadı veya RLS izinleri kapalı.</p>
+          </div>
+        </div>
+      )}
 
       {/* Filtreleme Çubuğu */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row gap-4">
@@ -113,9 +171,9 @@ export default function DanisanFormlariAdmin() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredForms.length === 0 && (
+          {filteredForms.length === 0 && !errorMsg && (
             <div className="col-span-full text-center py-12 text-slate-500 bg-white rounded-2xl border border-slate-200 border-dashed">
-              Arama kriterlerine uygun form bulunamadı.
+              Arama kriterlerine uygun form bulunamadı. Yeni bir form gönderildiğinde burada görünecektir.
             </div>
           )}
           
@@ -132,13 +190,13 @@ export default function DanisanFormlariAdmin() {
                   <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border ${typeInfo.color}`}>
                     {typeInfo.title}
                   </span>
-                  {!form.is_read && <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>}
+                  {!form.is_read && <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>}
                 </div>
                 
                 <h3 className="text-lg font-bold text-[#082b34] mb-1 truncate">{form.patient_name}</h3>
                 
                 <div className="space-y-1.5 mb-4">
-                  <div className="flex items-center text-xs text-slate-500"><Phone className="w-3.5 h-3.5 mr-2 shrink-0" /> {form.patient_phone}</div>
+                  {form.patient_phone && <div className="flex items-center text-xs text-slate-500"><Phone className="w-3.5 h-3.5 mr-2 shrink-0" /> {form.patient_phone}</div>}
                   {form.patient_email && <div className="flex items-center text-xs text-slate-500"><Mail className="w-3.5 h-3.5 mr-2 shrink-0" /> {form.patient_email}</div>}
                 </div>
                 
@@ -154,7 +212,7 @@ export default function DanisanFormlariAdmin() {
 
       {/* FORM DETAY MODALI (Pop-up) */}
       {selectedForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082b34]/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082b34]/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             
             {/* Modal Üst Kısım */}
@@ -217,7 +275,7 @@ export default function DanisanFormlariAdmin() {
             {/* Modal Alt Kısım */}
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
               <div className="flex gap-4 text-sm font-medium text-slate-500">
-                <a href={`tel:${selectedForm.patient_phone}`} className="flex items-center gap-1.5 hover:text-[#0f4c5c]"><Phone className="w-4 h-4" /> Ara</a>
+                {selectedForm.patient_phone && <a href={`tel:${selectedForm.patient_phone}`} className="flex items-center gap-1.5 hover:text-[#0f4c5c]"><Phone className="w-4 h-4" /> Ara</a>}
                 {selectedForm.patient_email && <a href={`mailto:${selectedForm.patient_email}`} className="flex items-center gap-1.5 hover:text-[#0f4c5c]"><Mail className="w-4 h-4" /> E-posta At</a>}
               </div>
               <button onClick={() => setSelectedForm(null)} className="px-5 py-2 bg-[#082b34] text-white text-sm font-bold rounded-xl hover:bg-[#0f4c5c] transition-colors">

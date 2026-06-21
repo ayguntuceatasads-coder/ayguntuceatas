@@ -18,12 +18,6 @@ export const metadata: Metadata = {
     default: "Uzm. Psk. Aygün Tuce Ataş | Antalya Psikolojik Danışmanlık",
   },
   description: "Antalya Muratpaşa'da bilimsel temellere dayanan, güvenilir ve etik psikolojik danışmanlık hizmetleri.",
-  
-  // SEARCH CONSOLE DOĞRULAMA KODU (Buraya eklenir)
-  verification: {
-    google: "t7JQ3HhDdPvT5mN6mW_4ZkWRH76QcKT1", 
-    // Örn: "dBdfX_be762837468234768234"
-  },
 };
 
 export default function FrontendLayout({
@@ -53,8 +47,8 @@ export default function FrontendLayout({
         <CookieBanner />
         <ScrollToTop />
         
-        {/* GOOGLE ANALYTICS KODU (G-XXXXXX formatındaki kimliği buraya yazın) */}
-        <GoogleAnalytics gaId="G-ÖLÇÜM_KİMLİĞİNİZ" />
+        {/* GOOGLE ANALYTICS KODU */}
+        <GoogleAnalytics gaId="G-BTZ0N13532" />
         
       </body>
     </html>

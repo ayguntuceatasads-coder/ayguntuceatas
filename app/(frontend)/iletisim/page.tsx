@@ -88,7 +88,7 @@ export default async function ContactPage() {
                   <MapPin className="w-6 h-6"/>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-[#082b34] mb-2">Klinik Adresi</h3>
+                  <h3 className="text-lg font-bold text-[#082b34] mb-2">Adresimiz</h3>
                   <p className="text-slate-500 leading-relaxed">{settings?.address || "Bilgi Girilmemiş"}</p>
                 </div>
               </div>

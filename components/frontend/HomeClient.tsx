@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, PhoneCall, CalendarPlus, ChevronRight, MessageSquare, AlertCircle, ChevronLeft } from "lucide-react";
-import Image from "next/image"; // Görsel optimizasyonu için eklendi
+import Image from "next/image";
 
 export default function HomeClient({ initialData }: { initialData: any }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const data = initialData; // Veriler artık sunucudan hazır (SEO uyumlu) geliyor
+  const data = initialData; 
 
   const slides = data.settings?.hero_slides || [];
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
+  // Otomatik slayt döngüsü
   useEffect(() => {
     if (slides.length < 2) return;
     const interval = setInterval(() => {
@@ -51,7 +52,8 @@ export default function HomeClient({ initialData }: { initialData: any }) {
                 src={slide.image || "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e"} 
                 alt="Klinik Hero" 
                 fill
-                priority={index === 0} // İlk görseli anında yükle (LCP SEO)
+                priority={index === 0}
+                sizes="100vw"
                 className="w-full h-full object-cover filter blur-[5px] brightness-[0.40] scale-105" 
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#082b34]/85 via-black/30 to-transparent"></div>

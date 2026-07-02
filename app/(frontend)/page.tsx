@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import HomeClient from '@/components/frontend/HomeClient';
 
-// YENİDEN DOĞRULAMA (Sitenin güncel kalması için)
-export const revalidate = 60; // Her 60 saniyede bir önbelleği günceller
+// Sitenin güncel kalması için 60 saniyelik cache (ISR) süresi
+export const revalidate = 60; 
 
-// 1. DİNAMİK VE GÜÇLÜ SEO METADATA (Google Arama Sonuçları İçin)
+// SEO Metadata Yapılandırması
 export const metadata: Metadata = {
   title: 'Uzm. Psk. Aygün Tuçe Ataş Önç | Antalya Psikolog ve EMDR Terapisi',
   description: 'Antalya\'da uzman psikolog Aygün Tuçe Ataş Önç ile online ve yüz yüze psikoterapi, EMDR terapisi, çocuk ve ergen danışmanlığı hizmetleri.',
@@ -23,60 +23,47 @@ export const metadata: Metadata = {
   }
 };
 
-// 2. GOOGLE SCHEMA (JSON-LD) - Kliniğinizin Kurumsal İşaretlemesi
+// Google Arama motorları için Kurumsal Schema
 const clinicSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalClinic",
   "name": "Uzm. Psk. Aygün Tuçe Ataş Önç Kliniği",
-  "image": "https://www.ayguntuceatas.com/logo.png", // Logo adresinizi kontrol edin
   "@id": "https://www.ayguntuceatas.com",
   "url": "https://www.ayguntuceatas.com",
-  "telephone": "+905000000000", // Gerçek telefon numaranızı girin
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "Fener Mh. Bülent Ecevit Bulvarı, No: 44",
+    "streetAddress": "Fener Mh. Bülent Ecevit Bulvarı",
     "addressLocality": "Muratpaşa",
     "addressRegion": "Antalya",
-    "postalCode": "07100",
     "addressCountry": "TR"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 36.852, 
-    "longitude": 30.742
-  },
-  "openingHoursSpecification": {
-    "@type": "OpeningHoursSpecification",
-    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    "opens": "09:00",
-    "closes": "18:00"
-  },
-  "medicalSpecialty": "Psychiatric"
+  }
 };
 
 export default async function HomePage() {
-  // 3. SUNUCU TARAFINDA VERİ ÇEKME (Google veriyi anında HTML'de görür)
   const supabase = await createClient();
   
-  const { data: settingsData } = await supabase.from("homepage_settings").select("*").order('id', { ascending: true });
-  const { data: servicesData } = await supabase.from("services").select("*").order("created_at", { ascending: true });
-  const { data: postsData } = await supabase.from("posts").select("*").order("created_at", { ascending: true });
-
-  const activeSettings = settingsData && settingsData.length > 0 ? settingsData[0] : null;
+  // Paralel veri çekme: Hem anasayfa, hem hizmetler hem de yazılar aynı anda çekilir (Performans için)
+  const [settingsRes, servicesRes, postsRes] = await Promise.all([
+    supabase.from("homepage_settings").select("*").limit(1),
+    supabase.from("services").select("*").order("created_at", { ascending: true }),
+    supabase.from("posts").select("*").order("created_at", { ascending: false })
+  ]);
 
   const initialData = {
-    settings: activeSettings,
-    services: servicesData || [],
-    posts: postsData || []
+    settings: settingsRes.data?.[0] || null,
+    services: servicesRes.data || [],
+    posts: postsRes.data || []
   };
 
   return (
     <>
+      {/* Schema verisini sayfaya gömüyoruz */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(clinicSchema) }}
       />
-      {/* Çekilen veri Client bileşenine aktarılıyor */}
+      
+      {/* HomeClient bileşeni anasayfadaki Hero, Hizmetler ve Yazıları görselleştirir */}
       <HomeClient initialData={initialData} />
     </>
   );

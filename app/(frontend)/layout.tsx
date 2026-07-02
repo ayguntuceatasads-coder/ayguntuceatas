@@ -6,8 +6,6 @@ import Footer from "@/components/layout/Footer";
 import FloatingButtons from "@/components/ui/FloatingButtons";
 import CookieBanner from "@/components/ui/CookieBanner";
 import ScrollToTop from "@/components/ui/ScrollToTop";
-
-// GTM ve GA4 bileşenlerini import ediyoruz
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -27,7 +25,7 @@ export default function FrontendLayout({
 }) {
   return (
     <html lang="tr" className="scroll-smooth">
-      {/* GOOGLE TAG MANAGER KODU BURAYA EKLENİYOR */}
+      {/* Google Tag Manager Entegrasyonu */}
       <GoogleTagManager gtmId="GTM-MMDVNZMS" />
       
       <body className={`${inter.className} min-h-screen flex flex-col bg-white text-slate-900`}>
@@ -50,7 +48,7 @@ export default function FrontendLayout({
         <CookieBanner />
         <ScrollToTop />
         
-        {/* GOOGLE ANALYTICS KODU */}
+        {/* Google Analytics 4 Entegrasyonu */}
         <GoogleAnalytics gaId="G-BTZ0N13532" />
         
       </body>

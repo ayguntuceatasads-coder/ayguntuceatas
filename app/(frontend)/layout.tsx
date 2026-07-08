@@ -24,11 +24,11 @@ export default function FrontendLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" className="scroll-smooth">
+    <html lang="tr" className="scroll-smooth" suppressHydrationWarning>
       {/* Google Tag Manager Entegrasyonu */}
       <GoogleTagManager gtmId="GTM-MMDVNZMS" />
       
-      <body className={`${inter.className} min-h-screen flex flex-col bg-white text-slate-900`}>
+      <body suppressHydrationWarning className={`${inter.className} min-h-screen flex flex-col bg-white text-slate-900`}>
         
         {/* Üst Menü */}
         <Navbar />

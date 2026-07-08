@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export default function AdminOlcekDuzenlePage() {
   const router = useRouter();
-  const { id } = useParams(); // URL'den ölçeğin ID'sini alır
+  const { id } = useParams();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -19,7 +19,6 @@ export default function AdminOlcekDuzenlePage() {
   const [sendEmail, setSendEmail] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
 
-  // Ölçek verilerini veritabanından çek
   useEffect(() => {
     async function fetchScale() {
       const { data, error } = await supabase
@@ -49,7 +48,8 @@ export default function AdminOlcekDuzenlePage() {
     setSlug(generateSlug(e.target.value));
   };
 
-  const addQuestion = () => setQuestions([...questions, { questionText: "", type: "radio", options: [{ text: "", points: 0 }] }]);
+  // Yeni soru eklendiğinde category alanını da boş olarak oluşturuyoruz
+  const addQuestion = () => setQuestions([...questions, { questionText: "", category: "", type: "radio", options: [{ text: "", points: 0 }] }]);
   
   const removeQuestion = (qIndex: number) => {
     if (window.confirm("Bu soruyu silmek istediğinize emin misiniz?")) {
@@ -148,14 +148,24 @@ export default function AdminOlcekDuzenlePage() {
                 <Trash2 className="w-5 h-5" />
               </button>
               
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="md:col-span-3">
+              {/* Soru, Kategori ve Tip Alanları */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+                <div className="md:col-span-7">
                   <label className="block text-sm font-bold text-slate-700 mb-2">Soru {qIndex + 1}</label>
                   <input required type="text" value={q.questionText} onChange={(e) => {
                     const newQs = [...questions]; newQs[qIndex].questionText = e.target.value; setQuestions(newQs);
                   }} className="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-[#00878a]" />
                 </div>
-                <div>
+                
+                {/* YENİ EKLENEN KATEGORİ ALANI */}
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Kategori (Opsiyonel)</label>
+                  <input type="text" value={q.category || ""} onChange={(e) => {
+                    const newQs = [...questions]; newQs[qIndex].category = e.target.value; setQuestions(newQs);
+                  }} placeholder="Örn: Terk Edilme" className="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-[#00878a] bg-slate-50" />
+                </div>
+
+                <div className="md:col-span-2">
                   <label className="block text-sm font-bold text-slate-700 mb-2">Tip</label>
                   <select value={q.type} onChange={(e) => updateQuestionType(qIndex, e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-lg outline-none bg-white">
                     <option value="radio">Tekil Seçim</option>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Eye, X, User, Phone, Mail } from "lucide-react";
+import { Loader2, Eye, X, User, Phone, Mail, BarChart3 } from "lucide-react";
 
 export default function ScaleResultsPage() {
   const [results, setResults] = useState<any[]>([]);
@@ -98,6 +98,30 @@ export default function ScaleResultsPage() {
                   Toplam Puan: <span className="text-xl">{selectedResult.score}</span>
                 </div>
               </div>
+
+              {/* KATEGORİ BAZLI PUANLAR VE YORUMLAR */}
+              {selectedResult.category_scores && Object.keys(selectedResult.category_scores).length > 0 && (
+                <div className="mb-8 bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60">
+                  <h3 className="font-bold text-lg text-[#082b34] mb-4 border-b border-slate-200 pb-2 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-[#00878a]" /> Ölçek Alt Boyut Puanları ve Yorumlar
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {Object.entries(selectedResult.category_scores).map(([category, score]: [string, any]) => (
+                      <div key={category} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-[#082b34] text-base">{category}</span>
+                          <span className="bg-[#00878a] text-white px-3 py-1 rounded-lg font-extrabold text-sm">{score} Puan</span>
+                        </div>
+                        {selectedResult.interpretations && selectedResult.interpretations[category] && (
+                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100 leading-relaxed italic">
+                            "{selectedResult.interpretations[category]}"
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <h3 className="font-bold text-lg text-[#082b34] mb-4 border-b border-slate-100 pb-2">Verilen Yanıtlar</h3>
               

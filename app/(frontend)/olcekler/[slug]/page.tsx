@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle2, AlertCircle, User, Mail, Phone } from "lucide-react";
+import { Loader2, CheckCircle2, Phone, User, Mail } from "lucide-react";
 
 export default function DynamicScalePage() {
   const { slug } = useParams();
@@ -13,11 +13,11 @@ export default function DynamicScalePage() {
   // Danışan Bilgileri
   const [patient, setPatient] = useState({ name: "", email: "", phone: "" });
   
-  // Cevapları tuttuğumuz obje. (Soru indexine göre cevapları tutar)
+  // Cevapları tuttuğumuz obje.
   const [answers, setAnswers] = useState<{ [key: number]: any }>({});
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{ score: number, show: boolean } | null>(null);
+  const [result, setResult] = useState<{ show: boolean } | null>(null);
 
   useEffect(() => {
     async function fetchScale() {
@@ -55,7 +55,7 @@ export default function DynamicScalePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Doğrulama: Bütün sorulara cevap verilmiş mi?
+    // Doğrulama
     const unanswered = scale.questions.findIndex((q: any, index: number) => {
       if (q.type === 'checkbox') return !answers[index] || answers[index].length === 0;
       return !answers[index] || answers[index].toString().trim() === "";
@@ -69,28 +69,28 @@ export default function DynamicScalePage() {
     setIsSubmitting(true);
 
     let totalScore = 0;
+    const categoryScores: Record<string, number> = {};
     const formattedAnswers: any = {};
 
-    // Puanları Hesapla ve Veriyi API'ye Uygun Hale Getir
     scale.questions.forEach((q: any, index: number) => {
       const ans = answers[index];
-      
-      // Veritabanına ve maile gidecek format
       formattedAnswers[q.questionText] = Array.isArray(ans) ? ans.join(", ") : ans;
 
-      // Puan Hesaplama Mantığı
+      let questionScore = 0;
       if (q.type === 'radio' || q.type === 'dropdown') {
-        const selectedOpt = q.options.find((o: any) => o.text === ans);
-        if (selectedOpt) totalScore += Number(selectedOpt.points || 0);
-      } else if (q.type === 'checkbox') {
-        if (Array.isArray(ans)) {
-          ans.forEach(ansText => {
-            const selectedOpt = q.options.find((o: any) => o.text === ansText);
-            if (selectedOpt) totalScore += Number(selectedOpt.points || 0);
-          });
-        }
+        const selectedOpt = q.options?.find((o: any) => o.text === ans);
+        if (selectedOpt) questionScore = Number(selectedOpt.points || 0);
+      } else if (q.type === 'checkbox' && Array.isArray(ans)) {
+        ans.forEach((ansText: string) => {
+          const selectedOpt = q.options?.find((o: any) => o.text === ansText);
+          if (selectedOpt) questionScore += Number(selectedOpt.points || 0);
+        });
       }
-      // 'text' tiplerinin puanı olmaz (0 kabul edilir)
+
+      totalScore += questionScore;
+      if (q.category) {
+        categoryScores[q.category] = (categoryScores[q.category] || 0) + questionScore;
+      }
     });
 
     try {
@@ -104,16 +104,17 @@ export default function DynamicScalePage() {
           patient_email: patient.email,
           patient_phone: patient.phone,
           score: totalScore,
+          category_scores: categoryScores,
           answers: formattedAnswers,
           send_email_to_patient: scale.send_email_to_patient
         })
       });
 
       if (response.ok) {
-        setResult({ score: totalScore, show: true });
+        setResult({ show: true });
         window.scrollTo(0,0);
       } else {
-        alert("Gönderim sırasında hata oluştu. Lütfen tekrar deneyin.");
+        alert("Gönderim sırasında hata oluştu.");
       }
     } catch (err) {
       alert("Bağlantı hatası yaşandı.");
@@ -122,24 +123,31 @@ export default function DynamicScalePage() {
     }
   };
 
-  // --- SONUÇ EKRANI ---
+  // --- SONUÇ EKRANI (Danışandan Tüm Puanlar Gizlendi) ---
   if (result?.show) {
     return (
-      <div className="min-h-screen bg-slate-50 py-20 px-4 flex items-center justify-center">
-        <div className="max-w-2xl w-full bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100 text-center">
-          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10" />
+      <div className="min-h-screen bg-slate-50 py-20 px-4 flex justify-center">
+        <div className="max-w-3xl w-full bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            <h2 className="text-3xl font-bold text-[#082b34] mb-4">Teşekkürler {patient.name.split(' ')[0]},</h2>
+            <p className="text-slate-600">Formunuz ve yanıtlarınız uzmanımıza başarıyla iletildi.</p>
           </div>
-          <h2 className="text-3xl font-bold text-[#082b34] mb-4">Teşekkürler {patient.name.split(' ')[0]},</h2>
-          <p className="text-slate-600 mb-8">Formunuz ve yanıtlarınız uzmanımıza başarıyla iletildi.</p>
           
-          <div className="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-200">
-            <p className="text-sm text-slate-500 uppercase tracking-wider font-bold mb-2">Ölçek Puanınız</p>
-            <p className="text-5xl font-bold text-[#00878a]">{result.score}</p>
-          </div>
-
-          <div className="text-sm text-slate-500 leading-relaxed bg-slate-100 p-4 rounded-xl text-left">
-            Ölçek sonuçları tek başına tanı ve tedavi amaçlı kullanılamaz. Sonuçlarınız uzmanımız tarafından değerlendirilecektir. Danışmanlık sürecinizle ilgili sorularınız için bizimle iletişime geçebilirsiniz.
+          <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200">
+            <div className="text-base text-slate-700 bg-white p-6 rounded-xl border border-slate-100 leading-relaxed text-left shadow-sm">
+              <p className="mb-4">
+                Bu sonuçlar sadece bir ön değerlendirmedir ve tek başına tanı/tedavi amaçlı kullanılamaz. Ölçek sonuçlarının mutlaka bir ruh sağlığı uzmanı tarafından değerlendirilmesi gerekir.
+              </p>
+              <p className="mb-6">
+                Psikolojik danışmanlık almak veya klinik değerlendirme yapılmasını isterseniz arayarak randevu alabilirsiniz.
+              </p>
+              <strong className="text-[#00878a] text-xl flex items-center gap-3">
+                <Phone className="w-6 h-6" /> 0 (507) 465 49 43
+              </strong>
+            </div>
           </div>
         </div>
       </div>
@@ -150,18 +158,12 @@ export default function DynamicScalePage() {
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
-        
-        {/* Başlık Alanı */}
         <div className="bg-[#082b34] text-white p-8 md:p-12 rounded-t-3xl text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{scale.title}</h1>
-          {scale.description && (
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-xl mx-auto whitespace-pre-wrap">{scale.description}</p>
-          )}
+          {scale.description && <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-xl mx-auto whitespace-pre-wrap">{scale.description}</p>}
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white p-6 md:p-10 rounded-b-3xl shadow-xl border border-slate-200/60">
-          
-          {/* ZORUNLU: Hasta İletişim Bilgileri */}
           <div className="mb-12 border-b border-slate-200 pb-10">
             <h3 className="text-lg font-bold text-[#082b34] mb-6 flex items-center gap-2">
               <User className="w-5 h-5 text-[#00878a]" /> Kişisel Bilgileriniz
@@ -191,13 +193,11 @@ export default function DynamicScalePage() {
             </div>
           </div>
 
-          {/* Dinamik Sorular */}
           <div className="space-y-10">
             {scale.questions.map((q: any, index: number) => (
               <div key={index} className="bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100">
                 <p className="font-semibold text-[#082b34] mb-6 text-lg leading-relaxed"><span className="text-[#00878a]">{index + 1}.</span> {q.questionText}</p>
                 
-                {/* TİP 1: Tekil Seçim (Radio) */}
                 {q.type === 'radio' && (
                   <div className="flex flex-col gap-3">
                     {q.options.map((opt: any, i: number) => (
@@ -208,8 +208,7 @@ export default function DynamicScalePage() {
                     ))}
                   </div>
                 )}
-
-                {/* TİP 2: Çoklu Seçim (Checkbox) */}
+                
                 {q.type === 'checkbox' && (
                   <div className="flex flex-col gap-3">
                     {q.options.map((opt: any, i: number) => (
@@ -220,8 +219,7 @@ export default function DynamicScalePage() {
                     ))}
                   </div>
                 )}
-
-                {/* TİP 3: Açılır Menü (Dropdown) */}
+                
                 {q.type === 'dropdown' && (
                   <select required value={answers[index] || ""} onChange={(e) => handleSingleSelect(index, e.target.value)} className="w-full px-4 py-4 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#00878a] text-slate-700 cursor-pointer text-base">
                     <option value="" disabled>Lütfen bir seçenek belirleyin...</option>
@@ -230,24 +228,19 @@ export default function DynamicScalePage() {
                     ))}
                   </select>
                 )}
-
-                {/* TİP 4: Açık Uçlu Soru (Text) */}
+                
                 {q.type === 'text' && (
                   <textarea required rows={4} value={answers[index] || ""} onChange={(e) => handleTextChange(index, e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#00878a] resize-none text-slate-700 placeholder:text-slate-400" placeholder="Cevabınızı buraya yazınız..."></textarea>
                 )}
-
               </div>
             ))}
           </div>
 
-          {/* Gönder Butonu */}
           <div className="mt-12 pt-10 border-t border-slate-100">
             <button disabled={isSubmitting} type="submit" className="w-full bg-[#082b34] text-white py-5 rounded-xl font-bold text-lg hover:bg-[#00878a] transition-all flex justify-center items-center gap-2 shadow-xl shadow-[#082b34]/20 disabled:opacity-70">
               {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Yanıtlarımı Kaydet ve Gönder"}
             </button>
-            <p className="text-center text-xs text-slate-400 mt-4">Verileriniz uçtan uca şifrelenerek korunmaktadır.</p>
           </div>
-
         </form>
       </div>
     </div>

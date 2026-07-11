@@ -2,145 +2,197 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Eye, X, User, Phone, Mail, BarChart3 } from "lucide-react";
+import { Loader2, Eye, X, Calendar, User, Phone, Mail, BarChart3, FileText } from "lucide-react";
 
-export default function ScaleResultsPage() {
+export default function AdminSonuclarPage() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Tıklanan sonucun detaylarını tutacağımız state
+  // Modal State'leri
   const [selectedResult, setSelectedResult] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchResults() {
-      const { data } = await supabase.from("scale_results").select("*").order("created_at", { ascending: false });
-      setResults(data || []);
+      const { data, error } = await supabase
+        .from("scale_results")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (data) setResults(data);
       setLoading(false);
     }
     fetchResults();
   }, []);
 
+  const openModal = (result: any) => {
+    setSelectedResult(result);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedResult(null);
+    setIsModalOpen(false);
+  };
+
   if (loading) return <div className="p-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-[#00878a]" /></div>;
 
   return (
-    <div className="max-w-6xl mx-auto pb-20 relative">
-      <h1 className="text-2xl font-bold text-[#082b34] mb-8">Doldurulan Ölçek Sonuçları</h1>
-      
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm text-slate-600">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase">
+    <div className="max-w-7xl mx-auto px-4 pb-24">
+      <h1 className="text-2xl font-bold text-[#082b34] mb-8">Ölçek Sonuçları</h1>
+
+      {/* Mobilde sağa kaydırmayı sağlayan overflow-x-auto eklendi */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden overflow-x-auto w-full">
+        <table className="w-full text-left text-sm text-slate-600 whitespace-nowrap">
+          <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
             <tr>
-              <th className="px-6 py-4">Danışan</th>
-              <th className="px-6 py-4">İletişim</th>
-              <th className="px-6 py-4">Doldurduğu Ölçek</th>
-              <th className="px-6 py-4 text-center">Toplam Puan</th>
-              <th className="px-6 py-4 text-right">İşlemler</th>
+              <th className="px-6 py-4 font-bold">Tarih</th>
+              <th className="px-6 py-4 font-bold">Danışan</th>
+              <th className="px-6 py-4 font-bold">Ölçek</th>
+              <th className="px-6 py-4 font-bold text-center">Toplam Puan</th>
+              <th className="px-6 py-4 font-bold text-right">İşlem</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {results.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500">Henüz sonuç yok.</td></tr>}
-            {results.map((res) => (
-              <tr key={res.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-bold text-[#082b34]">{res.patient_name}</td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-1">
-                    <span>{res.patient_email}</span>
-                    <span className="text-xs text-slate-400">{res.patient_phone}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4"><span className="bg-[#00878a]/10 text-[#00878a] px-3 py-1 rounded-full font-medium">{res.scale_name}</span></td>
-                <td className="px-6 py-4 text-center"><span className="text-xl font-bold text-[#082b34]">{res.score}</span></td>
-                <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={() => setSelectedResult(res)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-[#00878a] hover:text-white text-[#00878a] rounded-lg transition-colors font-bold text-xs"
-                  >
-                    <Eye className="w-4 h-4" /> Yanıtları Gör
-                  </button>
+            {results.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-10 text-center text-slate-500">
+                  Henüz doldurulmuş bir ölçek bulunmuyor.
                 </td>
               </tr>
-            ))}
+            ) : (
+              results.map((r) => (
+                <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4">
+                    {new Date(r.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-[#082b34]">{r.patient_name}</div>
+                    <div className="text-xs text-slate-400">{r.patient_email}</div>
+                  </td>
+                  <td className="px-6 py-4 font-medium text-slate-700">{r.scale_name}</td>
+                  <td className="px-6 py-4 text-center font-bold text-[#00878a] text-lg">{r.score}</td>
+                  <td className="px-6 py-4 text-right">
+                    <button 
+                      onClick={() => openModal(r)}
+                      className="inline-flex items-center gap-2 bg-[#00878a]/10 text-[#00878a] px-4 py-2 rounded-lg font-bold hover:bg-[#00878a] hover:text-white transition-all"
+                    >
+                      <Eye className="w-4 h-4" /> Detaylar
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* DETAY MODALI (POPUP) */}
-      {selectedResult && (
+      {/* DETAY MODALI */}
+      {isModalOpen && selectedResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-3xl max-h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative">
             
-            {/* Modal Başlığı */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50">
-              <div>
-                <h2 className="text-xl font-bold text-[#082b34]">{selectedResult.scale_name} Sonucu</h2>
-                <p className="text-sm text-slate-500 mt-1">Doldurulma: {new Date(selectedResult.created_at).toLocaleString('tr-TR')}</p>
-              </div>
-              <button onClick={() => setSelectedResult(null)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+            {/* Modal Header */}
+            <div className="bg-[#082b34] text-white p-6 flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-bold">{selectedResult.scale_name} Sonucu</h2>
+              <button onClick={closeModal} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Modal İçeriği (Scroll edilebilir) */}
-            <div className="p-6 overflow-y-auto flex-1">
+            {/* Modal Body (Scrollable) */}
+            <div className="p-6 overflow-y-auto space-y-8 bg-slate-50">
               
-              {/* Danışan Özet Kartı */}
-              <div className="flex flex-wrap gap-4 mb-8 bg-[#082b34]/5 p-4 rounded-2xl border border-[#082b34]/10">
-                <div className="flex items-center gap-2 text-sm text-[#082b34] bg-white px-3 py-2 rounded-lg shadow-sm">
-                  <User className="w-4 h-4 text-[#00878a]" /> <span className="font-bold">{selectedResult.patient_name}</span>
+              {/* Danışan Bilgileri */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                  <div className="bg-blue-50 p-3 rounded-lg text-blue-600"><User className="w-6 h-6" /></div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-bold uppercase">Danışan Adı</p>
+                    <p className="font-bold text-[#082b34]">{selectedResult.patient_name}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-[#082b34] bg-white px-3 py-2 rounded-lg shadow-sm">
-                  <Mail className="w-4 h-4 text-[#00878a]" /> {selectedResult.patient_email}
+                <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                  <div className="bg-purple-50 p-3 rounded-lg text-purple-600"><Calendar className="w-6 h-6" /></div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-bold uppercase">Tarih</p>
+                    <p className="font-bold text-[#082b34]">{new Date(selectedResult.created_at).toLocaleString('tr-TR')}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-[#082b34] bg-white px-3 py-2 rounded-lg shadow-sm">
-                  <Phone className="w-4 h-4 text-[#00878a]" /> {selectedResult.patient_phone}
+                <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                  <div className="bg-green-50 p-3 rounded-lg text-green-600"><Phone className="w-6 h-6" /></div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-bold uppercase">Telefon</p>
+                    <p className="font-bold text-[#082b34]">{selectedResult.patient_phone}</p>
+                  </div>
                 </div>
-                <div className="ml-auto flex items-center gap-2 text-sm bg-[#00878a] text-white px-4 py-2 rounded-lg shadow-sm font-bold">
-                  Toplam Puan: <span className="text-xl">{selectedResult.score}</span>
+                <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                  <div className="bg-orange-50 p-3 rounded-lg text-orange-600"><Mail className="w-6 h-6" /></div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-bold uppercase">E-posta</p>
+                    <p className="font-bold text-[#082b34]">{selectedResult.patient_email}</p>
+                  </div>
                 </div>
               </div>
 
-              {/* KATEGORİ BAZLI PUANLAR VE YORUMLAR */}
-              {selectedResult.category_scores && Object.keys(selectedResult.category_scores).length > 0 && (
-                <div className="mb-8 bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60">
-                  <h3 className="font-bold text-lg text-[#082b34] mb-4 border-b border-slate-200 pb-2 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-[#00878a]" /> Ölçek Alt Boyut Puanları ve Yorumlar
-                  </h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    {Object.entries(selectedResult.category_scores).map(([category, score]: [string, any]) => (
-                      <div key={category} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-[#082b34] text-base">{category}</span>
-                          <span className="bg-[#00878a] text-white px-3 py-1 rounded-lg font-extrabold text-sm">{score} Puan</span>
+              {/* Puan ve Yorumlar (Eğer varsa) */}
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                  <h3 className="text-lg font-bold text-[#082b34] flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#00878a]" /> Puanlama ve Analiz</h3>
+                  <div className="text-right">
+                    <span className="text-sm text-slate-400 font-bold">TOPLAM PUAN</span>
+                    <p className="text-3xl font-black text-[#00878a]">{selectedResult.score}</p>
+                  </div>
+                </div>
+
+                {selectedResult.category_scores && Object.keys(selectedResult.category_scores).length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(selectedResult.category_scores).map(([cat, val]) => (
+                      <div key={cat} className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold text-[#082b34] text-sm">{cat}</span>
+                          <span className="bg-[#00878a] text-white text-xs px-2 py-1 rounded font-bold">{String(val)} Puan</span>
                         </div>
-                        {selectedResult.interpretations && selectedResult.interpretations[category] && (
-                          <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100 leading-relaxed italic">
-                            "{selectedResult.interpretations[category]}"
-                          </div>
+                        {selectedResult.interpretations && selectedResult.interpretations[cat] && (
+                          <p className="text-xs text-slate-500 italic mt-2 border-t border-slate-200 pt-2">"{selectedResult.interpretations[cat]}"</p>
                         )}
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-
-              <h3 className="font-bold text-lg text-[#082b34] mb-4 border-b border-slate-100 pb-2">Verilen Yanıtlar</h3>
-              
-              <div className="space-y-4">
-                {selectedResult.answers && Object.entries(selectedResult.answers).map(([question, answer], index) => (
-                  <div key={index} className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p className="text-sm font-semibold text-slate-700 mb-2 leading-relaxed">{index + 1}. {question}</p>
-                    <p className="text-base font-bold text-[#00878a] bg-white inline-block px-3 py-1 rounded border border-slate-200">
-                      {String(answer) || "Cevapsız"}
-                    </p>
+                )}
+                
+                {/* Beck Depresyon gibi tekil genel yorumu olanlar için */}
+                {selectedResult.interpretations && selectedResult.interpretations["Genel Değerlendirme"] && (
+                  <div className="mt-4 bg-[#00878a]/10 border border-[#00878a]/20 p-4 rounded-lg">
+                    <span className="text-xs font-bold text-[#00878a] uppercase">Uzman Yorumu / Sonuç</span>
+                    <p className="font-bold text-[#082b34] mt-1">{selectedResult.interpretations["Genel Değerlendirme"]}</p>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
 
+              {/* Danışanın Verdiği Tüm Yanıtlar */}
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-[#082b34] mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <FileText className="w-5 h-5 text-[#00878a]" /> Danışanın Verdiği Yanıtlar
+                </h3>
+                <div className="space-y-4">
+                  {selectedResult.answers ? (
+                    Object.entries(selectedResult.answers).map(([question, answer], index) => (
+                      <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <p className="text-sm font-bold text-slate-700 mb-2">{index + 1}. {question}</p>
+                        <p className="text-[#00878a] font-medium bg-white px-3 py-2 rounded border border-slate-200 inline-block">{String(answer)}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-slate-500 text-sm">Bu sonuç için detaylı yanıt bulunamadı.</p>
+                  )}
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       )}
-      
     </div>
   );
 }

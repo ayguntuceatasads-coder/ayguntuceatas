@@ -106,7 +106,7 @@ export async function POST(req: Request) {
       `;
     }
 
-    // 2. Mail Gönderimi
+    // 2. Mail Gönderimi (Admin)
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: { user: "ayguntuceatasads@gmail.com", pass: "ihgi emxr jpzl brrh" },
@@ -139,7 +139,10 @@ export async function POST(req: Request) {
     };
     await transporter.sendMail(adminMailOptions);
 
+    // 3. Mail Gönderimi (Hasta - Puan Gizleme Mantığı İle)
     if (send_email_to_patient) {
+      const isHiddenScore = lowerScaleName.includes("conners") || lowerScaleName.includes("young");
+
       const patientMailOptions = {
         from: '"Aygün Tuçe Ataş Önç" <ayguntuceatasads@gmail.com>',
         to: patient_email,
@@ -148,14 +151,23 @@ export async function POST(req: Request) {
           <div style="font-family: sans-serif; color: #333; max-w: 600px; margin: auto; border: 1px solid #eee; padding: 30px; border-radius: 10px;">
             <h2 style="color: #082b34; margin-top: 0;">Merhaba ${patient_name},</h2>
             <p>Doldurmuş olduğunuz <strong>${scale_name}</strong> başarıyla sistemimize ulaşmıştır.</p>
-            <div style="text-align: center; background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <p style="margin: 0; font-size: 16px;">Ölçek sonucundaki toplam puanınız</p>
-              <strong style="font-size: 32px; color: #00878a;">${score}</strong>
-            </div>
             
-            ${categoryHtml}
+            ${isHiddenScore ? `
+              <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #e2e8f0; text-align: center;">
+                <p style="margin: 0; font-size: 18px; color: #082b34; font-weight: bold;">Form sonuçlarınız uzmanımıza iletilmiştir.</p>
+                <p style="margin-top: 15px; line-height: 1.6; color: #555;">Sonuçlarınız klinik olarak değerlendirildikten sonra sizinle iletişime geçilecektir. Dilerseniz <strong>0 (507) 465 49 43</strong> numaralı telefondan randevu veya bilgi alabilirsiniz.</p>
+              </div>
+            ` : `
+              <div style="text-align: center; background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 16px;">Ölçek sonucundaki toplam puanınız</p>
+                <strong style="font-size: 32px; color: #00878a;">${score}</strong>
+              </div>
+              
+              ${categoryHtml}
 
-            ${!(isBeckDepresyon || isBeckAnksiyete) ? `<p style="line-height: 1.6;">Sonuçlarınız uzmanımız tarafından değerlendirilecektir. Herhangi bir sorunuz olursa bizimle iletişime geçebilirsiniz.</p>` : ``}
+              ${!(isBeckDepresyon || isBeckAnksiyete) ? `<p style="line-height: 1.6;">Sonuçlarınız uzmanımız tarafından değerlendirilecektir. Herhangi bir sorunuz olursa bizimle iletişime geçebilirsiniz.</p>` : ``}
+            `}
+            
             <p style="margin-top: 30px; color: #666;">Sağlıklı günler dileriz.</p>
           </div>
         `

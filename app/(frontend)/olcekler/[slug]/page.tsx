@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle2, Phone, BarChart3, User, Mail, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, Phone, BarChart3, User, Mail } from "lucide-react";
 
 export default function DynamicScalePage() {
   const { slug } = useParams();
@@ -120,10 +120,12 @@ export default function DynamicScalePage() {
     }
   };
 
+  // --- SONUÇ EKRANI ---
   if (result?.show) {
     const isBeckDepresyon = slug === 'beck-depresyon-olcegi';
     const isBeckAnksiyete = slug === 'beck-anksiyete-olcegi';
     const isBeckScale = isBeckDepresyon || isBeckAnksiyete;
+    const isHiddenScore = slug?.includes('conners') || slug?.includes('young');
     const hasCategories = Object.keys(result.categoryScores).length > 0;
 
     return (
@@ -137,7 +139,22 @@ export default function DynamicScalePage() {
             <p className="text-slate-600">Formunuz ve yanıtlarınız uzmanımıza başarıyla iletildi.</p>
           </div>
           
-          {isBeckScale ? (
+          {/* PUANI GİZLİ ÖLÇEKLER (Conners ve Young) */}
+          {isHiddenScore ? (
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 text-center">
+              <p className="text-xl font-bold text-[#082b34] mb-4">Form sonuçlarınız uzmanımıza güvenle iletilmiştir.</p>
+              <div className="text-sm text-slate-600 bg-white p-6 rounded-xl border border-slate-100 leading-relaxed text-left">
+                Ölçek sonuçları tek başına tanı ve tedavi amaçlı kullanılamaz. Sonuçlarınızın mutlaka bir ruh sağlığı uzmanı tarafından klinik ortamda değerlendirilmesi gerekir. 
+                <br/><br/>
+                Süreçle ilgili değerlendirme yapıldıktan sonra sizinle iletişime geçilecektir. Dilerseniz doğrudan kliniğimizi arayarak randevu veya detaylı bilgi alabilirsiniz.
+                <br/><br/>
+                <strong className="text-[#00878a] text-lg flex items-center justify-center gap-2 mt-2">
+                  <Phone className="w-5 h-5" /> 0 (507) 465 49 43
+                </strong>
+              </div>
+            </div>
+          ) : isBeckScale ? (
+            /* BECK ÖLÇEKLERİ */
             <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200">
               <p className="text-sm font-bold text-slate-500 uppercase text-center mb-2">Bu sizin {scale.title} Puanınız</p>
               <p className="text-6xl font-bold text-[#00878a] text-center mb-6">{result.score}</p>
@@ -162,6 +179,7 @@ export default function DynamicScalePage() {
               </div>
             </div>
           ) : hasCategories ? (
+            /* DİĞER KATEGORİLİ ÖLÇEKLER (Örn: Sınav Kaygısı) */
             <div className="mb-8">
               <h3 className="text-xl font-bold text-[#082b34] mb-4 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-[#00878a]" /> Ölçek Alt Boyut Puanlarınız
@@ -176,6 +194,7 @@ export default function DynamicScalePage() {
               </div>
             </div>
           ) : (
+            /* DİĞER DÜZ ÖLÇEKLER */
             <div className="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-200 text-center">
               <p className="text-sm text-slate-500 uppercase tracking-wider font-bold mb-2">Ölçek Puanınız</p>
               <p className="text-5xl font-bold text-[#00878a]">{result.score}</p>
@@ -186,6 +205,7 @@ export default function DynamicScalePage() {
     );
   }
 
+  // --- FORM EKRANI ---
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">

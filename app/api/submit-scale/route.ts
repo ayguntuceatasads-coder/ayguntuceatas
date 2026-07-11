@@ -13,10 +13,13 @@ export async function POST(req: Request) {
 
     // --- OTOMATİK YORUMLAMA (INTERPRETATION) MOTORU ---
     let interpretations: Record<string, string> = {};
-    const isBeck = scale_name.toLocaleLowerCase('tr-TR').includes("beck depresyon");
+    const lowerScaleName = scale_name.toLocaleLowerCase('tr-TR');
+    
+    const isBeckDepresyon = lowerScaleName.includes("beck depresyon");
+    const isBeckAnksiyete = lowerScaleName.includes("beck anksiyete");
 
     // Sınav Kaygısı Yorumları
-    if (scale_name.toLocaleLowerCase('tr-TR').includes("sınav kaygısı") && category_scores) {
+    if (lowerScaleName.includes("sınav kaygısı") && category_scores) {
       const getYorum = (cat: string, s: number) => {
         switch (cat) {
           case "Başkalarının görüşü": return s >= 4 ? "Başkalarının sizi nasıl gördüğü sizin için büyük önem taşıyor. Çevrenizdeki insanların değerlendirmeleri bir sınav durumunda zihinsel faaliyetinizi olumsuz etkiliyor ve sınav başarınızı tehlikeye atıyor." : "Başkalarının sizinle ilgili görüşleri sizin için fazla önem taşımıyor. Bu sebeple sınavlara hazırlanırken çevrenizdeki insanların sizinle ilgili ne düşündükleri üzerinde kafa yorup zaman ve enerji kaybetmiyorsunuz.";
@@ -37,27 +40,28 @@ export async function POST(req: Request) {
     }
 
     // Beck Depresyon Yorumları
-    if (isBeck) {
+    if (isBeckDepresyon) {
       let beckResult = "";
       if (score <= 9) beckResult = "Minimal Depresyon";
       else if (score <= 16) beckResult = "Hafif depresyon";
       else if (score <= 29) beckResult = "Orta depresyon";
       else beckResult = "Şiddetli depresyon";
-      
       interpretations["Genel Değerlendirme"] = beckResult;
+    }
+
+    // Beck Anksiyete Yorumları
+    if (isBeckAnksiyete) {
+      let anksiyeteResult = "";
+      if (score <= 7) anksiyeteResult = "Minimal düzeyde anksiyete";
+      else if (score <= 15) anksiyeteResult = "Hafif düzeyde anksiyete";
+      else if (score <= 25) anksiyeteResult = "Orta düzeyde anksiyete";
+      else anksiyeteResult = "Şiddetli düzeyde anksiyete";
+      interpretations["Genel Değerlendirme"] = anksiyeteResult;
     }
 
     // 1. Veritabanına Kaydet
     const { error: dbError } = await supabase.from("scale_results").insert({
-      scale_id,
-      scale_name,
-      patient_name,
-      patient_email,
-      patient_phone,
-      score,
-      category_scores,
-      interpretations,
-      answers
+      scale_id, scale_name, patient_name, patient_email, patient_phone, score, category_scores, interpretations, answers
     });
 
     if (dbError) throw new Error("Veritabanı kayıt hatası: " + dbError.message);
@@ -65,21 +69,22 @@ export async function POST(req: Request) {
     // Kategori Puanlarını ve Yorumları Mailler İçin HTML Formatına Çevir
     let categoryHtml = "";
     
-    // Beck İçin Özel Mail HTML Blok (Yalnızca Admine gider)
-    if (isBeck) {
+    // Beck Ölçekleri İçin Özel Mail HTML Blok
+    if (isBeckDepresyon || isBeckAnksiyete) {
+      const araliklar = isBeckDepresyon 
+        ? "• Minimal 0-9<br/>• Hafif 10-16<br/>• Orta 17-29<br/>• Şiddetli 30-63" 
+        : "• Minimal 0-7<br/>• Hafif 8-15<br/>• Orta 16-25<br/>• Şiddetli 26-63";
+
       categoryHtml += `
         <div style="background: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px;">
           <h4 style="margin: 0 0 10px 0; color: #082b34; font-size: 18px;">Durum: <span style="color: #00878a;">${interpretations["Genel Değerlendirme"]}</span></h4>
           <p style="font-size: 14px; color: #666; margin: 0; line-height: 1.6;">
-            • Minimal Depresyon 0-9<br/>
-            • Hafif depresyon 10-16<br/>
-            • Orta depresyon 17-29<br/>
-            • Şiddetli depresyon 30-63
+            ${araliklar}
           </p>
         </div>
       `;
     } 
-    // Diğer Ölçekler İçin Alt Boyut HTML Blok (Yalnızca Admine gider)
+    // Diğer Ölçekler İçin Alt Boyut HTML Blok
     else if (category_scores && Object.keys(category_scores).length > 0) {
       categoryHtml = `
         <h4 style="color: #082b34; margin-bottom: 15px; font-size: 18px;">Alt Boyut Değerlendirmeleri ve Yorumlar:</h4>
@@ -101,13 +106,12 @@ export async function POST(req: Request) {
       `;
     }
 
-    // 2. Mail Gönderimi (Nodemailer)
+    // 2. Mail Gönderimi
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: { user: "ayguntuceatasads@gmail.com", pass: "ihgi emxr jpzl brrh" },
     });
 
-    // UZMANA GİDECEK MAİL (Tüm detaylar, puanlar ve yorumlar var)
     const adminMailOptions = {
       from: '"Klinik Otomasyonu" <ayguntuceatasads@gmail.com>',
       to: "ayguntuceatasads@gmail.com",
@@ -135,22 +139,23 @@ export async function POST(req: Request) {
     };
     await transporter.sendMail(adminMailOptions);
 
-    // DANIŞANA GİDECEK MAİL (Sadece genel bilgilendirme, puanlar gizli)
     if (send_email_to_patient) {
       const patientMailOptions = {
         from: '"Aygün Tuçe Ataş Önç" <ayguntuceatasads@gmail.com>',
         to: patient_email,
-        subject: `${scale_name} Formunuz Alındı`,
+        subject: `${scale_name} Sonucunuz`,
         html: `
           <div style="font-family: sans-serif; color: #333; max-w: 600px; margin: auto; border: 1px solid #eee; padding: 30px; border-radius: 10px;">
             <h2 style="color: #082b34; margin-top: 0;">Merhaba ${patient_name},</h2>
-            <p>Doldurmuş olduğunuz <strong>${scale_name}</strong> başarıyla sistemimize ulaşmış ve uzmanımıza iletilmiştir.</p>
-            
-            <div style="background: #f8fafc; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin: 20px 0;">
-              <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.6;">Bu form sadece bir ön değerlendirmedir ve tek başına tanı/tedavi amaçlı kullanılamaz. Sonuçların mutlaka bir ruh sağlığı uzmanı tarafından değerlendirilmesi gerekir.</p>
-              <p style="margin: 0; font-size: 14px; line-height: 1.6;">Klinik değerlendirme veya danışmanlık süreci için <strong>0 (507) 465 49 43</strong> numaralı telefondan randevu alabilirsiniz.</p>
+            <p>Doldurmuş olduğunuz <strong>${scale_name}</strong> başarıyla sistemimize ulaşmıştır.</p>
+            <div style="text-align: center; background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 16px;">Ölçek sonucundaki toplam puanınız</p>
+              <strong style="font-size: 32px; color: #00878a;">${score}</strong>
             </div>
+            
+            ${categoryHtml}
 
+            ${!(isBeckDepresyon || isBeckAnksiyete) ? `<p style="line-height: 1.6;">Sonuçlarınız uzmanımız tarafından değerlendirilecektir. Herhangi bir sorunuz olursa bizimle iletişime geçebilirsiniz.</p>` : ``}
             <p style="margin-top: 30px; color: #666;">Sağlıklı günler dileriz.</p>
           </div>
         `

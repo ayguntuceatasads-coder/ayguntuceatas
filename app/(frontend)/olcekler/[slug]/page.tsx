@@ -3,21 +3,18 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle2, Phone, User, Mail } from "lucide-react";
+import { Loader2, CheckCircle2, Phone, BarChart3, User, Mail, AlertCircle } from "lucide-react";
 
 export default function DynamicScalePage() {
   const { slug } = useParams();
   const [scale, setScale] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Danışan Bilgileri
   const [patient, setPatient] = useState({ name: "", email: "", phone: "" });
-  
-  // Cevapları tuttuğumuz obje.
   const [answers, setAnswers] = useState<{ [key: number]: any }>({});
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{ show: boolean } | null>(null);
+  const [result, setResult] = useState<{ score: number, categoryScores: Record<string, number>, show: boolean } | null>(null);
 
   useEffect(() => {
     async function fetchScale() {
@@ -31,7 +28,6 @@ export default function DynamicScalePage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-[#00878a]" /></div>;
   if (!scale) return <div className="min-h-screen flex items-center justify-center text-xl text-slate-500">Ölçek bulunamadı veya adresi değişmiş olabilir.</div>;
 
-  // --- CEVAPLARI İŞLEME FONKSİYONLARI ---
   const handleSingleSelect = (qIndex: number, val: string) => {
     setAnswers(prev => ({ ...prev, [qIndex]: val }));
   };
@@ -51,11 +47,9 @@ export default function DynamicScalePage() {
     setAnswers(prev => ({ ...prev, [qIndex]: val }));
   };
 
-  // --- FORMU GÖNDERME ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Doğrulama
     const unanswered = scale.questions.findIndex((q: any, index: number) => {
       if (q.type === 'checkbox') return !answers[index] || answers[index].length === 0;
       return !answers[index] || answers[index].toString().trim() === "";
@@ -72,11 +66,8 @@ export default function DynamicScalePage() {
     const categoryScores: Record<string, number> = {};
     const formattedAnswers: { question: string, answer: any }[] = [];
 
-    // Puanları Hesapla ve Veriyi API'ye Uygun Hale Getir
     scale.questions.forEach((q: any, index: number) => {
       const ans = answers[index];
-      
-      // Artık veriyi obje değil, sıralı bir dizi (array) olarak pushluyoruz
       formattedAnswers.push({
         question: q.questionText,
         answer: Array.isArray(ans) ? ans.join(", ") : ans
@@ -87,7 +78,7 @@ export default function DynamicScalePage() {
         const selectedOpt = q.options?.find((o: any) => o.text === ans);
         if (selectedOpt) questionScore = Number(selectedOpt.points || 0);
       } else if (q.type === 'checkbox' && Array.isArray(ans)) {
-        ans.forEach((ansText: string) => {
+        ans.forEach(ansText => {
           const selectedOpt = q.options?.find((o: any) => o.text === ansText);
           if (selectedOpt) questionScore += Number(selectedOpt.points || 0);
         });
@@ -117,7 +108,7 @@ export default function DynamicScalePage() {
       });
 
       if (response.ok) {
-        setResult({ show: true });
+        setResult({ score: totalScore, categoryScores, show: true });
         window.scrollTo(0,0);
       } else {
         alert("Gönderim sırasında hata oluştu.");
@@ -129,8 +120,12 @@ export default function DynamicScalePage() {
     }
   };
 
-  // --- SONUÇ EKRANI (Danışandan Tüm Puanlar Gizlendi) ---
   if (result?.show) {
+    const isBeckDepresyon = slug === 'beck-depresyon-olcegi';
+    const isBeckAnksiyete = slug === 'beck-anksiyete-olcegi';
+    const isBeckScale = isBeckDepresyon || isBeckAnksiyete;
+    const hasCategories = Object.keys(result.categoryScores).length > 0;
+
     return (
       <div className="min-h-screen bg-slate-50 py-20 px-4 flex justify-center">
         <div className="max-w-3xl w-full bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100">
@@ -142,25 +137,55 @@ export default function DynamicScalePage() {
             <p className="text-slate-600">Formunuz ve yanıtlarınız uzmanımıza başarıyla iletildi.</p>
           </div>
           
-          <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200">
-            <div className="text-base text-slate-700 bg-white p-6 rounded-xl border border-slate-100 leading-relaxed text-left shadow-sm">
-              <p className="mb-4">
-                Bu sonuçlar sadece bir ön değerlendirmedir ve tek başına tanı/tedavi amaçlı kullanılamaz. Ölçek sonuçlarının mutlaka bir ruh sağlığı uzmanı tarafından değerlendirilmesi gerekir.
+          {isBeckScale ? (
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200">
+              <p className="text-sm font-bold text-slate-500 uppercase text-center mb-2">Bu sizin {scale.title} Puanınız</p>
+              <p className="text-6xl font-bold text-[#00878a] text-center mb-6">{result.score}</p>
+              <p className="text-xl font-bold text-[#082b34] mb-4 text-center">
+                {isBeckDepresyon ? (
+                  result.score <= 9 ? "Minimal Depresyon" : result.score <= 16 ? "Hafif depresyon" : result.score <= 29 ? "Orta depresyon" : "Şiddetli depresyon"
+                ) : (
+                  result.score <= 7 ? "Minimal düzeyde anksiyete" : result.score <= 15 ? "Hafif düzeyde anksiyete" : result.score <= 25 ? "Orta düzeyde anksiyete" : "Şiddetli düzeyde anksiyete"
+                )}
               </p>
-              <p className="mb-6">
-                Psikolojik danışmanlık almak veya klinik değerlendirme yapılmasını isterseniz arayarak randevu alabilirsiniz.
-              </p>
-              <strong className="text-[#00878a] text-xl flex items-center gap-3">
-                <Phone className="w-6 h-6" /> 0 (507) 465 49 43
-              </strong>
+              <ul className="text-sm text-slate-600 space-y-1 mb-6 text-center">
+                {isBeckDepresyon ? (
+                  <><li>• Minimal Depresyon 0-9</li><li>• Hafif depresyon 10-16</li><li>• Orta depresyon 17-29</li><li>• Şiddetli depresyon 30-63</li></>
+                ) : (
+                  <><li>• Minimal Anksiyete 0-7</li><li>• Hafif Anksiyete 8-15</li><li>• Orta Anksiyete 16-25</li><li>• Şiddetli Anksiyete 26-63</li></>
+                )}
+              </ul>
+              <div className="text-sm text-slate-600 bg-white p-4 rounded-xl border border-slate-100 leading-relaxed text-left">
+                Bu sonuçlar sadece puanlama sonucudur. Ölçek sonuçları tanı ve tedavi amaçlı kullanılamaz. Ölçek sonuçlarının mutlaka bir ruh sağlığı uzmanı tarafından değerlendirilmesi gerekir. Psikolojik danışmanlık almak veya klinik değerlendirme yapılmasını isterseniz arayarak randevu alabilirsiniz.
+                <br/><br/>
+                <strong className="text-[#00878a] text-lg flex items-center gap-2"><Phone className="w-5 h-5" /> 0 (507) 465 49 43</strong>
+              </div>
             </div>
-          </div>
+          ) : hasCategories ? (
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-[#082b34] mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-[#00878a]" /> Ölçek Alt Boyut Puanlarınız
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Object.entries(result.categoryScores).map(([category, score]) => (
+                  <div key={category} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center">
+                    <span className="font-medium text-slate-700">{category}</span>
+                    <span className="bg-[#00878a] text-white px-3 py-1 rounded-lg font-bold">{String(score)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-200 text-center">
+              <p className="text-sm text-slate-500 uppercase tracking-wider font-bold mb-2">Ölçek Puanınız</p>
+              <p className="text-5xl font-bold text-[#00878a]">{result.score}</p>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // --- FORM EKRANI ---
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
@@ -203,7 +228,6 @@ export default function DynamicScalePage() {
             {scale.questions.map((q: any, index: number) => (
               <div key={index} className="bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100">
                 <p className="font-semibold text-[#082b34] mb-6 text-lg leading-relaxed"><span className="text-[#00878a]">{index + 1}.</span> {q.questionText}</p>
-                
                 {q.type === 'radio' && (
                   <div className="flex flex-col gap-3">
                     {q.options.map((opt: any, i: number) => (
@@ -214,7 +238,6 @@ export default function DynamicScalePage() {
                     ))}
                   </div>
                 )}
-                
                 {q.type === 'checkbox' && (
                   <div className="flex flex-col gap-3">
                     {q.options.map((opt: any, i: number) => (
@@ -225,7 +248,6 @@ export default function DynamicScalePage() {
                     ))}
                   </div>
                 )}
-                
                 {q.type === 'dropdown' && (
                   <select required value={answers[index] || ""} onChange={(e) => handleSingleSelect(index, e.target.value)} className="w-full px-4 py-4 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#00878a] text-slate-700 cursor-pointer text-base">
                     <option value="" disabled>Lütfen bir seçenek belirleyin...</option>
@@ -234,7 +256,6 @@ export default function DynamicScalePage() {
                     ))}
                   </select>
                 )}
-                
                 {q.type === 'text' && (
                   <textarea required rows={4} value={answers[index] || ""} onChange={(e) => handleTextChange(index, e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-[#00878a] resize-none text-slate-700 placeholder:text-slate-400" placeholder="Cevabınızı buraya yazınız..."></textarea>
                 )}

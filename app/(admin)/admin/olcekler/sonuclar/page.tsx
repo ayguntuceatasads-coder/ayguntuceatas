@@ -177,12 +177,21 @@ export default function AdminSonuclarPage() {
                 </h3>
                 <div className="space-y-4">
                   {selectedResult.answers ? (
-                    Object.entries(selectedResult.answers).map(([question, answer], index) => (
-                      <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                        <p className="text-sm font-bold text-slate-700 mb-2">{index + 1}. {question}</p>
-                        <p className="text-[#00878a] font-medium bg-white px-3 py-2 rounded border border-slate-200 inline-block">{String(answer)}</p>
-                      </div>
-                    ))
+                    Array.isArray(selectedResult.answers) ? (
+                      selectedResult.answers.map((item: any, index: number) => (
+                        <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                          <p className="text-sm font-bold text-slate-700 mb-2">{index + 1}. {item.question}</p>
+                          <p className="text-[#00878a] font-medium bg-white px-3 py-2 rounded border border-slate-200 inline-block">{String(item.answer)}</p>
+                        </div>
+                      ))
+                    ) : (
+                      Object.entries(selectedResult.answers).map(([question, answer], index) => (
+                        <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                          <p className="text-sm font-bold text-slate-700 mb-2">{index + 1}. {question}</p>
+                          <p className="text-[#00878a] font-medium bg-white px-3 py-2 rounded border border-slate-200 inline-block">{String(answer)}</p>
+                        </div>
+                      ))
+                    )
                   ) : (
                     <p className="text-slate-500 text-sm">Bu sonuç için detaylı yanıt bulunamadı.</p>
                   )}

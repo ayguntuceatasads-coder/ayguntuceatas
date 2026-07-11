@@ -125,7 +125,10 @@ export async function POST(req: Request) {
 
           <h4 style="color: #082b34;">Verilen Yanıtlar:</h4>
           <ul style="padding-left: 20px;">
-            ${Object.entries(answers).map(([q, a]) => `<li style="margin-bottom: 15px;"><strong>${q}</strong> <br/> <span style="color: #00878a; font-weight: bold;">${a}</span></li>`).join('')}
+            ${Array.isArray(answers) 
+              ? answers.map((item: any) => `<li style="margin-bottom: 15px;"><strong>${item.question}</strong> <br/> <span style="color: #00878a; font-weight: bold;">${item.answer}</span></li>`).join('')
+              : Object.entries(answers).map(([q, a]) => `<li style="margin-bottom: 15px;"><strong>${q}</strong> <br/> <span style="color: #00878a; font-weight: bold;">${a}</span></li>`).join('')
+            }
           </ul>
         </div>
       `,

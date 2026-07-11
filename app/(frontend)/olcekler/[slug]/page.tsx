@@ -70,11 +70,17 @@ export default function DynamicScalePage() {
 
     let totalScore = 0;
     const categoryScores: Record<string, number> = {};
-    const formattedAnswers: any = {};
+    const formattedAnswers: { question: string, answer: any }[] = [];
 
+    // Puanları Hesapla ve Veriyi API'ye Uygun Hale Getir
     scale.questions.forEach((q: any, index: number) => {
       const ans = answers[index];
-      formattedAnswers[q.questionText] = Array.isArray(ans) ? ans.join(", ") : ans;
+      
+      // Artık veriyi obje değil, sıralı bir dizi (array) olarak pushluyoruz
+      formattedAnswers.push({
+        question: q.questionText,
+        answer: Array.isArray(ans) ? ans.join(", ") : ans
+      });
 
       let questionScore = 0;
       if (q.type === 'radio' || q.type === 'dropdown') {

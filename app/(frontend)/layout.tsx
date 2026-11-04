@@ -7,19 +7,27 @@ import FloatingButtons from "@/components/ui/FloatingButtons";
 import CookieBanner from "@/components/ui/CookieBanner";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// Veritabanından dinamik başlık çekme + Tam Unvan Varsayılanı
+// Önbelleği 60 saniyede bir yenile (Admin panel değişiklikleri yansısın)
+export const revalidate = 60;
+
 export async function generateMetadata(): Promise<Metadata> {
   const defaultTitle = "Uzman Klinik Psikolog Aygün Tuçe Ataş Önç | Antalya & Online Terapi";
-  const defaultDesc = "Antalya Muratpaşa'da ve online terapi ile bilimsel temellere dayanan, güvenilir ve etik psikolojik danışmanlık hizmetleri.";
+  const defaultDesc = "Antalya Muratpaşa profesyonel psikolojik danışmanlık ve online terapi hizmetleri.";
 
   try {
-    const { data } = await supabase.from("settings").select("*").single();
-    const siteTitle = data?.site_title || data?.title || defaultTitle;
-    const siteDesc = data?.site_description || data?.description || defaultDesc;
+    const supabase = await createClient();
+    const { data: settings } = await supabase
+      .from("site_settings")
+      .select("site_title, site_description")
+      .eq("id", 1)
+      .maybeSingle();
+
+    const siteTitle = settings?.site_title || defaultTitle;
+    const siteDesc = settings?.site_description || defaultDesc;
 
     return {
       title: {
@@ -46,32 +54,20 @@ export default function FrontendLayout({
 }) {
   return (
     <html lang="tr" className="scroll-smooth" suppressHydrationWarning>
-      {/* Google Tag Manager Entegrasyonu */}
       <GoogleTagManager gtmId="GTM-MMDVNZMS" />
       
       <body 
         suppressHydrationWarning={true} 
         className={`${inter.className} min-h-screen flex flex-col bg-white text-slate-900`}
       >
-        {/* Üst Menü */}
         <Navbar />
-        
-        {/* Dinamik Sayfa İçeriği */}
         <main className="flex-1">
           {children}
         </main>
-        
-        {/* Alt Bilgi */}
         <Footer />
-        
-        {/* Sabit Yüzen Butonlar (WhatsApp & Telefon) */}
         <FloatingButtons />
-        
-        {/* Çerez ve Kaydırma Kontrolleri */}
         <CookieBanner />
         <ScrollToTop />
-        
-        {/* Google Analytics 4 Entegrasyonu */}
         <GoogleAnalytics gaId="G-BTZ0N13532" />
       </body>
     </html>

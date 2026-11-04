@@ -4,19 +4,17 @@ import PageHero from "@/components/ui/PageHero";
 import ContactForm from "@/components/ui/ContactForm";
 import type { Metadata } from "next";
 
-// YENİDEN DOĞRULAMA (Sayfa hızını artırır)
 export const revalidate = 60;
 
-// 1. ZENGİNLEŞTİRİLMİŞ METADATA (SEO)
 export const metadata: Metadata = {
-  title: "İletişim ve Adres Bilgileri | Uzm. Psk. Aygün Tuçe Ataş Önç",
-  description: "Antalya Muratpaşa'daki kliniğimizin açık adres tarifi, harita konumu, telefon, WhatsApp ve e-posta iletişim bilgileri.",
-  keywords: ["Antalya psikolog iletişim", "Aygün Tuçe Ataş iletişim", "Antalya psikoloji kliniği adresi", "Psikolog randevu al"],
+  title: "İletişim ve Adres Bilgileri | Uzman Klinik Psikolog Aygün Tuçe Ataş Önç",
+  description: "Antalya Muratpaşa'daki danışmanlık merkezimizin açık adres tarifi, harita konumu, telefon, WhatsApp ve online terapi iletişim bilgileri.",
+  keywords: ["Antalya psikolog iletişim", "Aygün Tuçe Ataş Önç iletişim", "Antalya klinik psikolog adresi", "online terapi randevu"],
   openGraph: {
-    title: "İletişim Bilgileri | Aygün Tuçe Ataş Önç Kliniği",
-    description: "Kliniğimize ulaşmak ve randevu almak için iletişim bilgilerimiz.",
+    title: "İletişim Bilgileri | Uzman Klinik Psikolog Aygün Tuçe Ataş Önç",
+    description: "Danışmanlık merkezimize ulaşmak ve yüz yüze veya online terapi randevusu almak için iletişim bilgilerimiz.",
     url: "https://www.ayguntuceatas.com/iletisim",
-    siteName: "Aygün Tuçe Ataş Önç Psikoloji Kliniği",
+    siteName: "Uzman Klinik Psikolog Aygün Tuçe Ataş Önç",
     locale: "tr_TR",
     type: "website",
   },
@@ -32,32 +30,30 @@ export default async function ContactPage() {
   const phoneLink = settings?.phone ? `tel:${settings.phone.replace(/\s+/g, '')}` : "#";
   const waLink = settings?.whatsapp ? `https://wa.me/${settings.whatsapp.replace(/\s+/g, '')}` : "#";
 
-  // 2. GOOGLE SCHEMA (JSON-LD) - ContactPage & LocalBusiness İşaretlemesi
   const contactSchema = {
     "@context": "https://schema.org",
     "@type": ["ContactPage", "LocalBusiness"],
-    "name": "Uzm. Psk. Aygün Tuçe Ataş Önç Kliniği İletişim",
+    "name": "Uzman Klinik Psikolog Aygün Tuçe Ataş Önç İletişim",
     "url": "https://www.ayguntuceatas.com/iletisim",
-    "telephone": settings?.phone || "+905000000000",
+    "telephone": settings?.phone || "+905074654943",
     "email": settings?.email || "info@ayguntuceatas.com",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": settings?.address || "Fener Mh. Bülent Ecevit Bulvarı",
+      "streetAddress": settings?.address || "Yeşilbahçe Mah. Metin Kasapoğlu Cad. Saadet Apt. No:33 D:8",
       "addressLocality": "Muratpaşa",
       "addressRegion": "Antalya",
       "addressCountry": "TR"
     },
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": settings?.phone || "+905000000000",
+      "telephone": settings?.phone || "+905074654943",
       "contactType": "customer service",
-      "availableLanguage": ["Turkish", "English"]
+      "availableLanguage": ["Turkish"]
     }
   };
 
   return (
     <>
-      {/* Schema Kodunu Sayfaya Enjekte Ediyoruz */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
@@ -73,13 +69,12 @@ export default async function ContactPage() {
         <div className="container mx-auto px-4 md:px-8 max-w-7xl mt-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
-            {/* Sol Sütun: İletişim Kartları */}
             <div className="lg:col-span-5 space-y-6">
               <div className="mb-10">
                 <span className="text-[#00878a] font-bold text-sm tracking-widest uppercase mb-3 block">BİZE ULAŞIN</span>
                 <h2 className="text-3xl font-bold text-[#082b34] mb-4">Merkezimize Hoş Geldiniz</h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Randevu almak, hizmetlerimiz hakkında bilgi edinmek veya aklınızdaki soruları sormak için aşağıdaki iletişim kanallarından bize ulaşabilirsiniz.
+                  Randevu almak, yüz yüze veya online terapi süreçlerimiz hakkında bilgi edinmek için aşağıdaki iletişim kanallarından bize ulaşabilirsiniz.
                 </p>
               </div>
 
@@ -115,7 +110,6 @@ export default async function ContactPage() {
               </div>
             </div>
 
-            {/* Sağ Sütun: Harita ve Canlı Form */}
             <div className="lg:col-span-7 flex flex-col gap-8">
               <div className="bg-white p-4 border border-slate-200 rounded-3xl shadow-sm h-[350px]">
                 {settings?.map_embed ? (
@@ -125,13 +119,11 @@ export default async function ContactPage() {
                 )}
               </div>
 
-              {/* Gerçek İletişim Formu Kutusu */}
               <div className="bg-[#082b34] rounded-3xl p-8 md:p-12 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#6ec9c9]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                 <h3 className="text-2xl font-bold text-white mb-2 relative z-10">Bize Mesaj Gönderin</h3>
-                <p className="text-[#a8cfcf] mb-8 text-sm relative z-10">Sorularınızı aşağıdaki formu doldurarak doğrudan klinik yönetim paneline ulaştırabilirsiniz.</p>
+                <p className="text-[#a8cfcf] mb-8 text-sm relative z-10">Sorularınızı aşağıdaki formu doldurarak doğrudan yönetim paneline ulaştırabilirsiniz.</p>
                 
-                {/* Form Bileşenini Burada Çağırıyoruz */}
                 <div className="relative z-10">
                   <ContactForm />
                 </div>
